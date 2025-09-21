@@ -30,7 +30,7 @@
   --radius-xl: calc(var(--radius) + 4px);
 }
 
-:root {
+:root { /* Light Theme */
   --radius: 0.625rem;
   --background: oklch(100% 0 0); /* White */
   --foreground: oklch(10% 0 0); /* Near Black */
@@ -61,7 +61,7 @@
   --ring: oklch(70% 0.05 300); /* Lilac */
 }
 
-.dark {
+.dark { /* Dark Theme */
   --background: oklch(10% 0 0); /* Near Black */
   --foreground: oklch(100% 0 0); /* White */
 
@@ -90,6 +90,7 @@
   --input: oklch(20% 0 0); /* Dark Gray */
   --ring: oklch(70% 0.05 300); /* Lilac */
 }
+
 
 @layer base {
   * {

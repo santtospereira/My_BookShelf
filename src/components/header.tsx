@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { Book, Library } from 'lucide-react';
+import { ThemeSwitcher } from './theme-switcher'; // Import ThemeSwitcher
 
 export default function Header() {
   return (
@@ -12,20 +13,23 @@ export default function Header() {
             <Library className="w-6 h-6" />
             <span>BookShelf</span>
           </Link>
-          <nav>
-            <ul className="flex items-center gap-6">
-              <li>
-                <Link href="/books" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
-                  Biblioteca
-                </Link>
-              </li>
-              <li>
-                <Link href="/add-book" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
-                  Adicionar Livro
-                </Link>
-              </li>
-            </ul>
-          </nav>
+          <div className="flex items-center gap-6"> {/* Added a div to group nav and ThemeSwitcher */}
+            <nav>
+              <ul className="flex items-center gap-6">
+                <li>
+                  <Link href="/books" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
+                    Biblioteca
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/add-book" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
+                    Adicionar Livro
+                  </Link>
+                </li>
+              </ul>
+            </nav>
+            <ThemeSwitcher /> {/* Placed ThemeSwitcher here */}
+          </div>
         </div>
       </div>
     </header>
