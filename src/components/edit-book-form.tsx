@@ -31,10 +31,8 @@ import FormProgress from "@/components/form-progress";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 import { editBookAction } from "@/actions/book";
-
-const GENRES = ["Literatura Brasileira", "Ficção Científica", "Ficção", "Romance", "Biografia", "História", "Autoajuda", "Tecnologia", "Negócios", "Psicologia", "Filosofia", "Poesia", "Conto", "Literatura Política", "Aventura", "Fábula", "Existencialismo"] as const;
-const STATUS = ["QUERO_LER", "LENDO", "LIDO", "PAUSADO", "ABANDONADO"] as const;
-const RATINGS = [1, 2, 3, 4, 5] as const;
+import { getBookByISBN } from "@/actions/google-books";
+import { GENRES, RATINGS, STATUS } from "@/lib/constants";
 
 const formSchema = z.object({
   title: z.string().min(2, {
@@ -111,20 +109,14 @@ export default function EditBookForm({ book }: Props) {
 
     setIsFetchingBook(true);
     try {
-      const response = await fetch(
-        `https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}&key=${process.env.NEXT_PUBLIC_GOOGLE_BOOKS_API_KEY}`
-      );
-      const data = await response.json();
-      if (data.items && data.items.length > 0) {
-        const book = data.items[0].volumeInfo;
-        form.setValue("title", book.title);
-        form.setValue("author", book.authors?.join(", ") || "");
-        form.setValue("pages", book.pageCount);
-        const yearMatch = book.publishedDate?.match(/\d{4}/);
-        const year = yearMatch ? parseInt(yearMatch[0]) : undefined;
-        form.setValue("year", year && !isNaN(year) ? year : undefined);
-        form.setValue("synopsis", book.description);
-        form.setValue("cover", book.imageLinks?.thumbnail || "");
+      const bookData = await getBookByISBN(isbn);
+      if (bookData) {
+        form.setValue("title", bookData.title);
+        form.setValue("author", bookData.author);
+        form.setValue("pages", bookData.pages);
+        form.setValue("year", bookData.year);
+        form.setValue("synopsis", bookData.synopsis);
+        form.setValue("cover", bookData.cover);
       } else {
         toast.error("Nenhum livro encontrado com o ISBN fornecido.");
       }
