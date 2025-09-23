@@ -3,6 +3,9 @@
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import React from "react";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 import {
   Form,
@@ -28,7 +31,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 import { addBookAction } from "@/actions/book";
 
-const GENRES = ["Literatura Brasileira", "Ficção Científica", "Realismo Mágico", "Ficção", "Fantasia", "Romance", "Biografia", "História", "Autoajuda", "Tecnologia", "Programação", "Negócios", "Psicologia", "Filosofia", "Poesia", "Conto"] as const;
+const GENRES = ["Literatura Brasileira", "Ficção Científica", "Ficção", "Romance", "Biografia", "História", "Autoajuda", "Tecnologia", "Negócios", "Psicologia", "Filosofia", "Poesia", "Conto", "Literatura Política", "Aventura", "Fábula", "Existencialismo"] as const;
 const STATUS = ["QUERO_LER", "LENDO", "LIDO", "PAUSADO", "ABANDONADO"] as const;
 const RATINGS = [1, 2, 3, 4, 5] as const;
 
@@ -59,24 +62,26 @@ const formSchema = z.object({
 });
 
 export default function AddBookPage() {
+  const router = useRouter();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       title: "",
       author: "",
-      pages: undefined, // Keep as undefined for number inputs, as empty string might cause issues with type coercion
-      year: undefined, // Keep as undefined for number inputs, as empty string might cause issues with type coercion
-      currentPage: undefined, // Keep as undefined for number inputs, as empty string might cause issues with type coercion
-      status: "", // Initialize with empty string for Select
+      pages: undefined,
+      year: undefined,
+      currentPage: undefined,
+      status: "",
       isbn: "",
       cover: "",
-      genre: "", // Initialize with empty string for Select
-      rating: "", // Initialize with empty string for Select
+      genre: "",
+      rating: "",
       synopsis: "",
     },
   });
 
   const { isSubmitting } = form.formState;
+  const [isFetchingBook, setIsFetchingBook] = React.useState(false);
 
   const coverUrl = form.watch("cover");
 
@@ -90,8 +95,45 @@ export default function AddBookPage() {
       }
     }
 
-    await addBookAction(formData);
+    try {
+      await addBookAction(formData);
+      toast.success("Livro adicionado com sucesso!");
+      router.push('/books');
+    } catch (error) {
+      toast.error("Erro ao adicionar o livro.");
+    }
   }
+
+  const fetchBookData = async () => {
+    const isbn = form.getValues("isbn");
+    if (!isbn) return;
+
+    setIsFetchingBook(true);
+    try {
+      const response = await fetch(
+        `https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}&key=${process.env.NEXT_PUBLIC_GOOGLE_BOOKS_API_KEY}`
+      );
+      const data = await response.json();
+      if (data.items && data.items.length > 0) {
+        const book = data.items[0].volumeInfo;
+        form.setValue("title", book.title);
+        form.setValue("author", book.authors?.join(", ") || "");
+        form.setValue("pages", book.pageCount && !isNaN(book.pageCount) ? book.pageCount : undefined);
+        const yearMatch = book.publishedDate?.match(/\d{4}/);
+        const year = yearMatch ? parseInt(yearMatch[0]) : undefined;
+        form.setValue("year", year && !isNaN(year) ? year : undefined);
+        form.setValue("synopsis", book.description);
+        form.setValue("cover", book.imageLinks?.thumbnail || "");
+      } else {
+        toast.error("Nenhum livro encontrado com o ISBN fornecido.");
+      }
+    } catch (error) {
+      console.error("Erro ao buscar dados do livro:", error);
+      toast.error("Erro ao buscar dados do livro. Verifique o ISBN e tente novamente.");
+    } finally {
+      setIsFetchingBook(false);
+    }
+  };
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -195,9 +237,14 @@ export default function AddBookPage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>ISBN</FormLabel>
-                      <FormControl>
-                        <Input placeholder="ISBN do livro" {...field} />
-                      </FormControl>
+                      <div className="flex gap-2">
+                        <FormControl>
+                          <Input placeholder="ISBN do livro" {...field} />
+                        </FormControl>
+                        <Button type="button" onClick={fetchBookData} disabled={isFetchingBook}>
+                          {isFetchingBook ? "Buscando..." : "Buscar"}
+                        </Button>
+                      </div>
                       <FormMessage />
                     </FormItem>
                   )}

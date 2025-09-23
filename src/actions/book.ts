@@ -6,7 +6,7 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-const GENRES = ["Literatura Brasileira", "Ficção Científica", "Ficção", "Fantasia", "Romance", "Biografia", "História", "Autoajuda", "Tecnologia", "Programação", "Negócios", "Psicologia", "Filosofia", "Poesia", "Conto", "Existencialismo"] as const;
+const GENRES = ["Literatura Brasileira", "Ficção Científica", "Ficção", "Romance", "Biografia", "História", "Autoajuda", "Tecnologia", "Negócios", "Psicologia", "Filosofia", "Poesia", "Conto", "Literatura Política", "Aventura", "Fábula", "Existencialismo"] as const;
 const STATUS = ["QUERO_LER", "LENDO", "LIDO", "PAUSADO", "ABANDONADO"] as const;
 const RATINGS = [1, 2, 3, 4, 5] as const;
 
@@ -31,6 +31,8 @@ const formSchema = z.object({
   synopsis: z.string().optional(),
   year: z.coerce.number().optional(),
 });
+
+import { revalidatePath } from "next/cache";
 
 // Server Action para adicionar um livro
 export async function addBookAction(formData: FormData) {
@@ -57,7 +59,7 @@ export async function addBookAction(formData: FormData) {
   });
 
   console.log("Livro adicionado com sucesso!");
-  redirect('/books');
+  revalidatePath('/books');
 }
 
 // Server Action para editar um livro
@@ -88,7 +90,7 @@ export async function editBookAction(id: string, formData: FormData) {
   });
 
   console.log("Livro atualizado com sucesso!");
-  redirect('/books');
+  revalidatePath('/books');
 }
 
 // Server Action para excluir um livro
@@ -102,5 +104,38 @@ export async function deleteBookAction(id: string) {
   });
 
   console.log("Livro excluído com sucesso!");
-  redirect('/books');
+  revalidatePath('/books');
+}
+
+export async function fetchBookDataByISBN(isbn: string) {
+  'use server';
+
+  if (!isbn) {
+    return null;
+  }
+
+  const apiKey = "AIzaSyDtqNJUG2H1BzVn0fhSXfzKBGcN5PFKi6E";
+
+  try {
+    const response = await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}&key=${apiKey}`);
+    const data = await response.json();
+
+    if (data.items && data.items.length > 0) {
+      const item = data.items[0].volumeInfo;
+      return {
+        title: item.title || '',
+        author: item.authors ? item.authors.join(', ') : '',
+        genre: item.categories ? item.categories.join(', ') : '',
+        year: item.publishedDate ? parseInt(item.publishedDate.substring(0, 4)) : null,
+        pages: item.pageCount || null,
+        cover: item.imageLinks?.thumbnail || '',
+        synopsis: item.description || '',
+      };
+    }
+  } catch (error) {
+    console.error("Error fetching book data:", error);
+    return null;
+  }
+
+  return null;
 }

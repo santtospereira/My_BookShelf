@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { Book, Library } from 'lucide-react';
 import { ThemeSwitcher } from './theme-switcher'; // Import ThemeSwitcher
+import ClientOnly from './client-only';
 
 export default function Header() {
   return (
@@ -21,14 +22,11 @@ export default function Header() {
                     Biblioteca
                   </Link>
                 </li>
-                <li>
-                  <Link href="/add-book" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
-                    Adicionar Livro
-                  </Link>
-                </li>
               </ul>
             </nav>
-            <ThemeSwitcher /> {/* Placed ThemeSwitcher here */}
+            <ClientOnly>
+              <ThemeSwitcher /> {/* Placed ThemeSwitcher here */}
+            </ClientOnly>
           </div>
         </div>
       </div>

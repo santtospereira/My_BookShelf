@@ -12,6 +12,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
 interface Props {
   bookId: string;
@@ -19,10 +21,17 @@ interface Props {
 
 export default function DeleteBookButton({ bookId }: Props) {
   const [isOpen, setIsOpen] = useState(false);
+  const router = useRouter();
 
   const handleDelete = async () => {
-    await deleteBookAction(bookId);
-    setIsOpen(false);
+    try {
+      await deleteBookAction(bookId);
+      toast.success('Livro excluído com sucesso!');
+      router.push('/books');
+      setIsOpen(false);
+    } catch (error) {
+      toast.error('Erro ao excluir o livro.');
+    }
   };
 
   return (

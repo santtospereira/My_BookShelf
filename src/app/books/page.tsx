@@ -17,6 +17,9 @@ export default async function BooksPage() {
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-4xl font-bold">Minha Biblioteca</h1>
+          <Button asChild>
+            <Link href="/add-book">Adicionar Livro</Link>
+          </Button>
         </div>
         <BooksList books={books} />
       </div>
