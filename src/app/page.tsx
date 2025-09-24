@@ -8,6 +8,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { BookOpen, CheckCircle2, FileText, Library } from "lucide-react";
+import GenreChart from '@/components/genre-chart';
 
 async function getStats() {
   const books = await prisma.book.findMany();
@@ -22,11 +23,22 @@ async function getStats() {
     return acc + (book.currentPage || 0);
   }, 0);
 
-  return { totalBooks, readingNow, finishedBooks, totalPagesRead };
+  const genreCounts = books.reduce((acc, book) => {
+    if (book.genre) {
+      acc[book.genre] = (acc[book.genre] || 0) + 1;
+    }
+    return acc;
+  }, {} as Record<string, number>);
+
+  const genreData = Object.entries(genreCounts)
+    .map(([name, total]) => ({ name, total }))
+    .sort((a, b) => b.total - a.total);
+
+  return { totalBooks, readingNow, finishedBooks, totalPagesRead, genreData };
 }
 
 export default async function Home() {
-  const { totalBooks, readingNow, finishedBooks, totalPagesRead } = await getStats();
+  const { totalBooks, readingNow, finishedBooks, totalPagesRead, genreData } = await getStats();
 
   return (
     <main className="flex min-h-screen flex-col items-center p-8 md:p-12 lg:p-24">
@@ -82,6 +94,8 @@ export default async function Home() {
             <div className="text-2xl font-bold">{totalPagesRead.toLocaleString('pt-BR')}</div>
           </CardContent>
         </Card>
+
+        <GenreChart data={genreData} />
       </div>
     </main>
   );
