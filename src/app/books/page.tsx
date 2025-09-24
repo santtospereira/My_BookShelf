@@ -1,9 +1,7 @@
-import { PrismaClient } from '@prisma/client';
+import prisma from '@/lib/prisma';
 import BooksList from '@/components/books-list';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-
-const prisma = new PrismaClient();
 
 export default async function BooksPage() {
   const books = await prisma.book.findMany({

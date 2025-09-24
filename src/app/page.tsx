@@ -7,6 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { BookOpen, CheckCircle2, FileText, Library } from "lucide-react";
 
 async function getStats() {
   const books = await prisma.book.findMany();
@@ -39,6 +40,7 @@ export default async function Home() {
             <CardTitle className="text-sm font-medium">
               Total de Livros
             </CardTitle>
+            <Library className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totalBooks}</div>
@@ -50,6 +52,7 @@ export default async function Home() {
             <CardTitle className="text-sm font-medium">
               Livros em Leitura
             </CardTitle>
+            <BookOpen className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{readingNow}</div>
@@ -61,6 +64,7 @@ export default async function Home() {
             <CardTitle className="text-sm font-medium">
               Livros Finalizados
             </CardTitle>
+            <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{finishedBooks}</div>
@@ -72,6 +76,7 @@ export default async function Home() {
             <CardTitle className="text-sm font-medium">
               Total de Páginas Lidas
             </CardTitle>
+            <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totalPagesRead.toLocaleString('pt-BR')}</div>

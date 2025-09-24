@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import DeleteBookButton from '@/components/delete-book-button';
 import BookCover from '@/components/book-cover';
 import { useRouter } from 'next/navigation';
+import StatusBadge from '@/components/status-badge';
 
 interface Props {
   books: Book[];
@@ -73,15 +74,17 @@ export default function BooksList({ books }: Props) {
       {filteredBooks.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
           {filteredBooks.map((book) => (
-            <Link key={book.id} href={`/books/${book.id}`}>
-              <Card className="flex flex-col overflow-hidden rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 h-full">
+            <Link key={book.id} href={`/books/${book.id}`} className="block">
+              <Card className="flex flex-col overflow-hidden rounded-lg shadow-lg h-full transition-transform duration-300 hover:scale-105">
                 <div className="aspect-w-2 aspect-h-3">
                   <BookCover src={book.cover} alt={book.title} />
                 </div>
                 <div className="p-4 flex flex-col flex-grow">
                   <CardTitle className="text-base font-bold truncate mb-1">{book.title}</CardTitle>
                   <CardDescription className="text-sm text-muted-foreground mb-2">{book.author} ({book.year})</CardDescription>
-                  
+                  <div className="mt-2 mb-3">
+                    <StatusBadge status={book.status} />
+                  </div>
                   <div className="flex justify-between items-center mt-auto">
                     <Rating value={book.rating} />
                     {book.genre && (
@@ -91,10 +94,12 @@ export default function BooksList({ books }: Props) {
                 </div>
                 <CardFooter className="p-2 bg-muted/40 border-t">
                   <div className="flex w-full justify-around">
-                    <Button variant="ghost" size="sm" className="flex-1" onClick={() => router.push(`/books/${book.id}/edit`)}>
+                    <Button variant="ghost" size="sm" className="flex-1" onClick={(e) => { e.stopPropagation(); router.push(`/books/${book.id}/edit`); }}>
                       Editar
                     </Button>
-                    <DeleteBookButton bookId={book.id} />
+                    <div onClick={(e) => e.stopPropagation()}>
+                      <DeleteBookButton bookId={book.id} />
+                    </div>
                   </div>
                 </CardFooter>
               </Card>
