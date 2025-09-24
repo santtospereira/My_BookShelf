@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { deleteBookAction } from '@/actions/book';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -17,20 +16,43 @@ import { toast } from 'sonner';
 
 interface Props {
   bookId: string;
+  onDelete?: () => void; // Callback opcional para atualizar a lista
 }
 
-export default function DeleteBookButton({ bookId }: Props) {
+export default function DeleteBookButton({ bookId, onDelete }: Props) {
   const [isOpen, setIsOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const router = useRouter();
 
   const handleDelete = async () => {
     try {
-      await deleteBookAction(bookId);
+      setIsDeleting(true);
+      
+      const response = await fetch(`/api/books/${bookId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Erro ao excluir o livro');
+      }
+
       toast.success('Livro excluído com sucesso!');
-      router.push('/books');
       setIsOpen(false);
+      
+      // Se tem callback, chama ele (para atualizar a lista)
+      if (onDelete) {
+        onDelete();
+      } else {
+        // Se não tem callback, navega para a página de livros
+        router.push('/books');
+        router.refresh();
+      }
     } catch (error) {
-      toast.error('Erro ao excluir o livro.');
+      console.error('Erro ao excluir livro:', error);
+      toast.error(error instanceof Error ? error.message : 'Erro ao excluir o livro.');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -48,14 +70,20 @@ export default function DeleteBookButton({ bookId }: Props) {
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
-          <Button variant="outline" onClick={() => setIsOpen(false)}>
+          <Button 
+            variant="outline" 
+            onClick={() => setIsOpen(false)}
+            disabled={isDeleting}
+          >
             Cancelar
           </Button>
-          <form action={handleDelete}>
-            <Button type="submit" variant="destructive">
-              Confirmar Exclusão
-            </Button>
-          </form>
+          <Button 
+            onClick={handleDelete}
+            variant="destructive"
+            disabled={isDeleting}
+          >
+            {isDeleting ? 'Excluindo...' : 'Confirmar Exclusão'}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
