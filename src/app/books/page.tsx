@@ -1,15 +1,8 @@
-import prisma from '@/lib/prisma';
 import BooksList from '@/components/books-list';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 
-export default async function BooksPage() {
-  const books = await prisma.book.findMany({
-    orderBy: {
-      title: 'asc',
-    },
-  });
-
+export default function BooksPage() {
   return (
     <main className="min-h-screen p-8 md:p-12 lg:p-24">
       <div className="max-w-7xl mx-auto">
@@ -19,7 +12,7 @@ export default async function BooksPage() {
             <Link href="/add-book">Adicionar Livro</Link>
           </Button>
         </div>
-        <BooksList books={books} />
+        <BooksList />
       </div>
     </main>
   );

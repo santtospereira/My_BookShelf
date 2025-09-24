@@ -3,7 +3,7 @@
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
@@ -29,8 +29,25 @@ import { Button } from "@/components/ui/button";
 import FormProgress from "@/components/form-progress";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-import { addBookAction, fetchBookDataByISBN } from "@/actions/book";
-import { GENRES, RATINGS, STATUS } from "@/lib/constants";
+import { getBookByISBN } from "@/actions/google-books";
+
+interface Genre {
+  id: string;
+  name: string;
+  _count: {
+    books: number;
+  };
+}
+
+const STATUS_OPTIONS = [
+  { value: "QUERO_LER", label: "Quero Ler" },
+  { value: "LENDO", label: "Lendo" },
+  { value: "LIDO", label: "Lido" },
+  { value: "PAUSADO", label: "Pausado" },
+  { value: "ABANDONADO", label: "Abandonado" }
+] as const;
+
+const RATINGS = [1, 2, 3, 4, 5] as const;
 
 const formSchema = z.object({
   title: z.string().min(2, {
@@ -39,28 +56,41 @@ const formSchema = z.object({
   author: z.string().min(2, {
     message: "O nome do autor deve ter no mínimo 2 caracteres.",
   }),
-  pages: z.coerce.number().min(1, {
-    message: "O número de páginas deve ser pelo menos 1."
+  pages: z.union([z.string(), z.number()]).transform((val) => {
+    if (val === '' || val === null || val === undefined) return undefined;
+    const num = typeof val === 'string' ? parseInt(val) : val;
+    return isNaN(num) ? undefined : num;
   }).optional(),
-  year: z.coerce.number().optional(),
-  currentPage: z.coerce.number().optional(),
-  status: z.enum(STATUS, {
-    errorMap: () => ({ message: "Por favor, selecione um status de leitura." }),
+  year: z.union([z.string(), z.number()]).transform((val) => {
+    if (val === '' || val === null || val === undefined) return undefined;
+    const num = typeof val === 'string' ? parseInt(val) : val;
+    return isNaN(num) ? undefined : num;
   }).optional(),
+  currentPage: z.union([z.string(), z.number()]).transform((val) => {
+    if (val === '' || val === null || val === undefined) return undefined;
+    const num = typeof val === 'string' ? parseInt(val) : val;
+    return isNaN(num) ? undefined : num;
+  }).optional(),
+  status: z.enum(["QUERO_LER", "LENDO", "LIDO", "PAUSADO", "ABANDONADO"]).optional(),
   isbn: z.string().optional(),
-  cover: z.string().url("A URL da capa deve ser válida.").optional(),
-  genre: z.string({
-    required_error: "Por favor, selecione um gênero.",
-  }).optional(),
-  rating: z.enum(["1", "2", "3", "4", "5"], {
-    errorMap: () => ({ message: "Por favor, selecione uma avaliação." }),
+  cover: z.string().url("A URL da capa deve ser válida.").or(z.literal('')).optional(),
+  genreId: z.string().optional(),
+  rating: z.union([z.string(), z.number()]).transform((val) => {
+    if (val === '' || val === null || val === undefined) return undefined;
+    const num = typeof val === 'string' ? parseInt(val) : val;
+    return isNaN(num) ? undefined : num;
   }).optional(),
   synopsis: z.string().optional(),
 });
 
+type FormData = z.infer<typeof formSchema>;
+
 export default function AddBookPage() {
   const router = useRouter();
-  const form = useForm<z.infer<typeof formSchema>>({
+  const [genres, setGenres] = useState<Genre[]>([]);
+  const [isFetchingBook, setIsFetchingBook] = useState(false);
+  
+  const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
       title: "",
@@ -68,44 +98,63 @@ export default function AddBookPage() {
       pages: undefined,
       year: undefined,
       currentPage: undefined,
-      status: "",
+      status: undefined,
       isbn: "",
       cover: "",
-      genre: "",
-      rating: "",
+      genreId: "none",
+      rating: "none",
       synopsis: "",
     },
   });
 
   const { isSubmitting } = form.formState;
-  const [isFetchingBook, setIsFetchingBook] = React.useState(false);
 
-  const coverUrl = form.watch("cover");
-
-  async function onSubmit(values: z.infer<typeof formSchema>) {
-    const formData = new FormData();
-    for (const key in values) {
-      const value = values[key as keyof typeof values];
-      if (value !== undefined && value !== null) {
-        formData.append(key, value.toString());
+  // Buscar gêneros ao carregar o componente
+  useEffect(() => {
+    async function fetchGenres() {
+      try {
+        const response = await fetch('/api/genres');
+        if (!response.ok) throw new Error('Erro ao carregar gêneros');
+        
+        const data: Genre[] = await response.json();
+        setGenres(data);
+      } catch (err) {
+        console.error('Erro ao carregar gêneros:', err);
+        toast.error('Erro ao carregar gêneros');
       }
     }
 
-    const result = await addBookAction(formData);
+    fetchGenres();
+  }, []);
 
-    if (result.success) {
+  const coverUrl = form.watch("cover");
+
+  async function onSubmit(values: any) {
+    try {
+      const response = await fetch('/api/books', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...values,
+          // Converter valores "none" para null/undefined
+          genreId: values.genreId === 'none' ? null : values.genreId,
+          status: values.status === 'none' ? null : values.status,
+          rating: values.rating === 'none' ? null : parseInt(values.rating),
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Erro ao adicionar o livro');
+      }
+
       toast.success("Livro adicionado com sucesso!");
       router.push('/books');
-    } else {
-      if (result.errors) {
-        for (const [field, messages] of Object.entries(result.errors)) {
-          form.setError(field as keyof z.infer<typeof formSchema>, {
-            type: "server",
-            message: messages.join(", "),
-          });
-        }
-      }
-      toast.error("Erro ao adicionar o livro. Verifique os campos e tente novamente.");
+    } catch (error) {
+      console.error('Erro ao adicionar livro:', error);
+      toast.error(error instanceof Error ? error.message : "Erro ao adicionar o livro.");
     }
   }
 
@@ -115,12 +164,12 @@ export default function AddBookPage() {
 
     setIsFetchingBook(true);
     try {
-      const bookData = await fetchBookDataByISBN(isbn);
+      const bookData = await getBookByISBN(isbn);
       if (bookData) {
         form.setValue("title", bookData.title);
         form.setValue("author", bookData.author);
-        form.setValue("pages", bookData.pages || undefined);
-        form.setValue("year", bookData.year || undefined);
+        form.setValue("pages", bookData.pages);
+        form.setValue("year", bookData.year);
         form.setValue("synopsis", bookData.synopsis);
         form.setValue("cover", bookData.cover);
       } else {
@@ -183,19 +232,22 @@ export default function AddBookPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
-                    name="genre"
+                    name="genreId"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Gênero</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value || 'none'}>
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Selecione um gênero" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {GENRES.map(genre => (
-                              <SelectItem key={genre} value={genre}>{genre}</SelectItem>
+                            <SelectItem value="none">Nenhum gênero</SelectItem>
+                            {genres.map(genre => (
+                              <SelectItem key={genre.id} value={genre.id}>
+                                {genre.name}
+                              </SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
@@ -263,15 +315,18 @@ export default function AddBookPage() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Status de Leitura</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select onValueChange={field.onChange} value={field.value || 'none'}>
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Selecione um status" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {STATUS.map(status => (
-                              <SelectItem key={status} value={status}>{status}</SelectItem>
+                            <SelectItem value="none">Nenhum status</SelectItem>
+                            {STATUS_OPTIONS.map(status => (
+                              <SelectItem key={status.value} value={status.value}>
+                                {status.label}
+                              </SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
@@ -285,15 +340,21 @@ export default function AddBookPage() {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Avaliação</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select 
+                          onValueChange={(value) => field.onChange(value === 'none' ? 'none' : value)} 
+                          value={field.value?.toString() || 'none'}
+                        >
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Avaliação por estrelas" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
+                            <SelectItem value="none">Sem avaliação</SelectItem>
                             {RATINGS.map(rating => (
-                              <SelectItem key={rating} value={rating.toString()}>{rating} Estrela{rating > 1 ? 's' : ''}</SelectItem>
+                              <SelectItem key={rating} value={rating.toString()}>
+                                {rating} Estrela{rating > 1 ? 's' : ''}
+                              </SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
