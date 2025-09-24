@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { PrismaClient } from '@prisma/client';
+import prisma from '@/lib/prisma';
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -7,8 +7,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-
-const prisma = new PrismaClient();
 
 async function getStats() {
   const books = await prisma.book.findMany();

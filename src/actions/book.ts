@@ -2,13 +2,8 @@
 
 import { z } from "zod";
 import { redirect } from 'next/navigation';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
-
-const GENRES = ["Literatura Brasileira", "Ficção Científica", "Ficção", "Romance", "Biografia", "História", "Autoajuda", "Tecnologia", "Negócios", "Psicologia", "Filosofia", "Poesia", "Conto", "Literatura Política", "Aventura", "Fábula", "Existencialismo"] as const;
-const STATUS = ["QUERO_LER", "LENDO", "LIDO", "PAUSADO", "ABANDONADO"] as const;
-const RATINGS = [1, 2, 3, 4, 5] as const;
+import prisma from '@/lib/prisma';
+import { GENRES, STATUS, RATINGS } from "@/lib/constants";
 
 const formSchema = z.object({
   title: z.string().min(2, {
@@ -37,29 +32,45 @@ import { revalidatePath } from "next/cache";
 // Server Action para adicionar um livro
 export async function addBookAction(formData: FormData) {
   'use server';
-  
-  const rawFormData = Object.fromEntries(formData.entries());
-  
-  const parsedData = formSchema.parse(rawFormData);
-  
-  await prisma.book.create({
-    data: {
-      title: parsedData.title,
-      author: parsedData.author,
-      genre: parsedData.genre || null,
-      pages: parsedData.pages || null,
-      currentPage: parsedData.currentPage || null,
-      status: parsedData.status || null,
-      isbn: parsedData.isbn || null,
-      cover: parsedData.cover || null,
-      rating: parsedData.rating ? parseInt(parsedData.rating) : null,
-      synopsis: parsedData.synopsis || null,
-      year: parsedData.year || null,
-    },
-  });
 
-  console.log("Livro adicionado com sucesso!");
-  revalidatePath('/books');
+  const rawFormData = Object.fromEntries(formData.entries());
+  const validationResult = formSchema.safeParse(rawFormData);
+
+  if (!validationResult.success) {
+    return {
+      success: false,
+      errors: validationResult.error.flatten().fieldErrors,
+    };
+  }
+
+  try {
+    await prisma.book.create({
+      data: {
+        title: validationResult.data.title,
+        author: validationResult.data.author,
+        genre: validationResult.data.genre || null,
+        pages: validationResult.data.pages || null,
+        currentPage: validationResult.data.currentPage || null,
+        status: validationResult.data.status || null,
+        isbn: validationResult.data.isbn || null,
+        cover: validationResult.data.cover || null,
+        rating: validationResult.data.rating ? parseInt(validationResult.data.rating) : null,
+        synopsis: validationResult.data.synopsis || null,
+        year: validationResult.data.year || null,
+      },
+    });
+
+    revalidatePath('/books');
+    return {
+      success: true,
+    };
+  } catch (error) {
+    console.error("Error adding book:", error);
+    return {
+      success: false,
+      errors: { _server: ["Não foi possível adicionar o livro. Tente novamente."] },
+    };
+  }
 }
 
 // Server Action para editar um livro
@@ -67,30 +78,47 @@ export async function editBookAction(id: string, formData: FormData) {
   'use server';
 
   const rawFormData = Object.fromEntries(formData.entries());
-  
-  const parsedData = formSchema.parse(rawFormData);
-  
-  await prisma.book.update({
-    where: {
-      id,
-    },
-    data: {
-      title: parsedData.title,
-      author: parsedData.author,
-      genre: parsedData.genre || null,
-      pages: parsedData.pages || null,
-      currentPage: parsedData.currentPage || null,
-      status: parsedData.status || null,
-      isbn: parsedData.isbn || null,
-      cover: parsedData.cover || null,
-      rating: parsedData.rating ? parseInt(parsedData.rating) : null,
-      synopsis: parsedData.synopsis || null,
-      year: parsedData.year || null,
-    },
-  });
+  const validationResult = formSchema.safeParse(rawFormData);
 
-  console.log("Livro atualizado com sucesso!");
-  revalidatePath('/books');
+  if (!validationResult.success) {
+    return {
+      success: false,
+      errors: validationResult.error.flatten().fieldErrors,
+    };
+  }
+
+  try {
+    await prisma.book.update({
+      where: {
+        id,
+      },
+      data: {
+        title: validationResult.data.title,
+        author: validationResult.data.author,
+        genre: validationResult.data.genre || null,
+        pages: validationResult.data.pages || null,
+        currentPage: validationResult.data.currentPage || null,
+        status: validationResult.data.status || null,
+        isbn: validationResult.data.isbn || null,
+        cover: validationResult.data.cover || null,
+        rating: validationResult.data.rating ? parseInt(validationResult.data.rating) : null,
+        synopsis: validationResult.data.synopsis || null,
+        year: validationResult.data.year || null,
+      },
+    });
+
+    revalidatePath('/books');
+    revalidatePath('/'); // Revalidate home page to update stats
+    return {
+      success: true,
+    };
+  } catch (error) {
+    console.error("Error updating book:", error);
+    return {
+      success: false,
+      errors: { _server: ["Não foi possível atualizar o livro. Tente novamente."] },
+    };
+  }
 }
 
 // Server Action para excluir um livro
@@ -114,7 +142,7 @@ export async function fetchBookDataByISBN(isbn: string) {
     return null;
   }
 
-  const apiKey = "AIzaSyDtqNJUG2H1BzVn0fhSXfzKBGcN5PFKi6E";
+  const apiKey = process.env.GOOGLE_BOOKS_API_KEY;
 
   try {
     const response = await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}&key=${apiKey}`);

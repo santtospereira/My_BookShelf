@@ -86,7 +86,6 @@ export default function EditBookForm({ book }: Props) {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     const formData = new FormData();
-
     for (const key in values) {
       const value = values[key as keyof typeof values];
       if (value !== undefined && value !== null) {
@@ -94,12 +93,21 @@ export default function EditBookForm({ book }: Props) {
       }
     }
 
-    try {
-      await editBookAction(book.id, formData);
+    const result = await editBookAction(book.id, formData);
+
+    if (result.success) {
       toast.success("Livro atualizado com sucesso!");
       router.push('/books');
-    } catch (error) {
-      toast.error("Erro ao atualizar o livro.");
+    } else {
+      if (result.errors) {
+        for (const [field, messages] of Object.entries(result.errors)) {
+          form.setError(field as keyof z.infer<typeof formSchema>, {
+            type: "server",
+            message: messages.join(", "),
+          });
+        }
+      }
+      toast.error("Erro ao atualizar o livro. Verifique os campos e tente novamente.");
     }
   }
 

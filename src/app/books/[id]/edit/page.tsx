@@ -1,8 +1,6 @@
 import { notFound } from 'next/navigation';
-import { PrismaClient } from '@prisma/client';
+import prisma from '@/lib/prisma';
 import EditBookForm from '@/components/edit-book-form';
-
-const prisma = new PrismaClient();
 
 interface Props {
   params: {

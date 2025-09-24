@@ -29,11 +29,8 @@ import { Button } from "@/components/ui/button";
 import FormProgress from "@/components/form-progress";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-import { addBookAction } from "@/actions/book";
-
-const GENRES = ["Literatura Brasileira", "Ficção Científica", "Ficção", "Romance", "Biografia", "História", "Autoajuda", "Tecnologia", "Negócios", "Psicologia", "Filosofia", "Poesia", "Conto", "Literatura Política", "Aventura", "Fábula", "Existencialismo"] as const;
-const STATUS = ["QUERO_LER", "LENDO", "LIDO", "PAUSADO", "ABANDONADO"] as const;
-const RATINGS = [1, 2, 3, 4, 5] as const;
+import { addBookAction, fetchBookDataByISBN } from "@/actions/book";
+import { GENRES, RATINGS, STATUS } from "@/lib/constants";
 
 const formSchema = z.object({
   title: z.string().min(2, {
@@ -87,7 +84,6 @@ export default function AddBookPage() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     const formData = new FormData();
-
     for (const key in values) {
       const value = values[key as keyof typeof values];
       if (value !== undefined && value !== null) {
@@ -95,12 +91,21 @@ export default function AddBookPage() {
       }
     }
 
-    try {
-      await addBookAction(formData);
+    const result = await addBookAction(formData);
+
+    if (result.success) {
       toast.success("Livro adicionado com sucesso!");
       router.push('/books');
-    } catch (error) {
-      toast.error("Erro ao adicionar o livro.");
+    } else {
+      if (result.errors) {
+        for (const [field, messages] of Object.entries(result.errors)) {
+          form.setError(field as keyof z.infer<typeof formSchema>, {
+            type: "server",
+            message: messages.join(", "),
+          });
+        }
+      }
+      toast.error("Erro ao adicionar o livro. Verifique os campos e tente novamente.");
     }
   }
 
@@ -110,20 +115,14 @@ export default function AddBookPage() {
 
     setIsFetchingBook(true);
     try {
-      const response = await fetch(
-        `https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}&key=${process.env.NEXT_PUBLIC_GOOGLE_BOOKS_API_KEY}`
-      );
-      const data = await response.json();
-      if (data.items && data.items.length > 0) {
-        const book = data.items[0].volumeInfo;
-        form.setValue("title", book.title);
-        form.setValue("author", book.authors?.join(", ") || "");
-        form.setValue("pages", book.pageCount && !isNaN(book.pageCount) ? book.pageCount : undefined);
-        const yearMatch = book.publishedDate?.match(/\d{4}/);
-        const year = yearMatch ? parseInt(yearMatch[0]) : undefined;
-        form.setValue("year", year && !isNaN(year) ? year : undefined);
-        form.setValue("synopsis", book.description);
-        form.setValue("cover", book.imageLinks?.thumbnail || "");
+      const bookData = await fetchBookDataByISBN(isbn);
+      if (bookData) {
+        form.setValue("title", bookData.title);
+        form.setValue("author", bookData.author);
+        form.setValue("pages", bookData.pages || undefined);
+        form.setValue("year", bookData.year || undefined);
+        form.setValue("synopsis", bookData.synopsis);
+        form.setValue("cover", bookData.cover);
       } else {
         toast.error("Nenhum livro encontrado com o ISBN fornecido.");
       }
