@@ -1,9 +1,7 @@
 import { NextRequest } from 'next/server'
-import { PrismaClient } from '@prisma/client'
+import prisma from '@/lib/prisma'
 import { handleApiError, createSuccessResponse, createErrorResponse } from '@/lib/api-utils'
 import { createGenreSchema, CreateGenreInput } from '@/lib/validations'
-
-const prisma = new PrismaClient()
 
 // GET /api/genres - Listar todos os gêneros
 export async function GET() {

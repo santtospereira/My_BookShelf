@@ -82,10 +82,7 @@ export default function AddBookForm({ genres }: AddBookFormProps) {
 
   async function onSubmit(values: FormData) {
     try {
-      const result = await addBookAction({
-        ...values,
-        genreId: values.genreId === 'none' ? null : values.genreId,
-      });
+      const result = await addBookAction(values);
 
       if (!result?.success) {
         const serverErrors = result?.errors ? Object.values(result.errors).flat().join(' ') : "Erro desconhecido";

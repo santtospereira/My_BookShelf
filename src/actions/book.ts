@@ -47,8 +47,9 @@ export async function addBookAction(formData: any) {
     return {
       success: true,
     };
-  } catch (error) {
+  } catch (error: any) { // Explicitly type error as any for full logging
     console.error("Error adding book:", error);
+    console.error("Prisma error details:", error.message, error.code, error.meta); // Log more details
     return {
       success: false,
       errors: { _server: ["Não foi possível adicionar o livro. Tente novamente."] },

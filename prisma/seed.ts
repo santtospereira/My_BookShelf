@@ -2,45 +2,37 @@ import { PrismaClient, ReadingStatus } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
+// Lista de gêneros a serem criados
+const GENRES_TO_CREATE = [
+  "Fantasia", "Romance", "Aventura", "Conto / Fábula", 
+  "Suspense / Mistério", "Biografia", "Filosofia", "Psicologia", 
+  "Tecnologia", "Filosofia Política", "História", "Ficção Científica", "Ficção"
+] as const;
+
 async function main() {
   console.log('Start seeding ...');
 
   // Deleta todos os livros e gêneros existentes para evitar duplicatas
   await prisma.book.deleteMany();
   await prisma.genre.deleteMany();
-
-  // Primeiro, criar os gêneros
-  const genres = [
-    { name: 'Fantasia' },
-    { name: 'Romance' },
-    { name: 'Aventura' },
-    { name: 'Conto / Fábula' },
-    { name: 'Suspense / Mistério' },
-    { name: 'Biografia' },
-    { name: 'Filosofia' },
-    { name: 'Psicologia' },
-    { name: 'Tecnologia' },
-    { name: 'Filosofia Política' },
-    { name: 'História' },
-    { name: 'Ficção Científica' },
-    { name: 'Ficção' },
-  ];
-
-  const createdGenres = [];
-  for (const genre of genres) {
-    const createdGenre = await prisma.genre.create({
-      data: genre,
-    });
-    createdGenres.push(createdGenre);
-  }
+  console.log('Deleted existing books and genres.');
 
   // Mapear os gêneros por nome para facilitar a busca
-  const genreMap = createdGenres.reduce((map, genre) => {
-    map[genre.name] = genre.id;
-    return map;
-  }, {} as Record<string, string>);
+  const genreMap: { [key: string]: string } = {};
 
-  // Criar os livros com referência aos gêneros
+  // Criar os gêneros e armazenar seus IDs gerados
+  console.log('Creating genres...');
+  for (const genreName of GENRES_TO_CREATE) {
+    const createdGenre = await prisma.genre.create({
+      data: {
+        name: genreName,
+      },
+    });
+    genreMap[genreName] = createdGenre.id; // Mapeia o nome do gênero para o ID gerado
+  }
+  console.log(`Created ${Object.keys(genreMap).length} genres.`);
+
+  // Criar os livros com referência aos gêneros recém-criados
   const books = [
     {
       title: 'A Guerra dos Tronos',
@@ -185,14 +177,15 @@ async function main() {
     },
   ];
 
+  console.log('Creating books...');
   for (const book of books) {
     await prisma.book.create({
       data: book,
     });
   }
+  console.log(`Created ${books.length} books.`);
 
   console.log('Seeding finished.');
-  console.log(`Created ${createdGenres.length} genres and ${books.length} books.`);
 }
 
 main()

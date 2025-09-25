@@ -5,6 +5,11 @@ import prisma from '@/lib/prisma';
 export async function getAllGenres() {
   try {
     const genres = await prisma.genre.findMany({
+      include: {
+        _count: {
+          select: { books: true },
+        },
+      },
       orderBy: {
         name: 'asc',
       },

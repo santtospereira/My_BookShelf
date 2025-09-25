@@ -1,9 +1,7 @@
 import { NextRequest } from 'next/server'
-import { PrismaClient } from '@prisma/client'
+import prisma from '@/lib/prisma'
 import { handleApiError, createSuccessResponse, createErrorResponse } from '@/lib/api-utils'
 import { updateBookSchema, UpdateBookInput } from '@/lib/validations'
-
-const prisma = new PrismaClient()
 
 // GET /api/books/[id] - Obter detalhes de um livro
 export async function GET(
@@ -96,7 +94,7 @@ export async function PUT(
 // DELETE /api/books/[id] - Remover livro
 export async function DELETE(
   request: NextRequest,
-  context: { params: Promise<{ id: string }> }
+  context: { params: Promise<{ id:string }> }
 ) {
   try {
     const resolvedParams = await context.params;
