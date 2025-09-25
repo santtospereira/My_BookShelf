@@ -158,28 +158,29 @@ import { booksSearchSchema } from "@/lib/validations";
 import { ReadingStatus } from "@prisma/client";
 
 interface BookWhereInput {
-  title?: { contains: string; mode?: 'insensitive' };
-  author?: { contains: string; mode?: 'insensitive' };
+  title?: { contains: string };
+  author?: { contains: string };
   status?: ReadingStatus;
   isbn?: string;
   year?: number;
   pages?: number;
-  genre?: { name: { contains: string; mode?: 'insensitive' } };
+  genre?: { name: { contains: string } };
 }
 
 export async function getBooks(searchParams: { [key: string]: string | string[] | undefined }) {
   'use server';
 
   try {
-    const validatedParams = booksSearchSchema.parse(searchParams);
+    const awaitedSearchParams = await Promise.resolve(searchParams);
+    const validatedParams = booksSearchSchema.parse({ ...awaitedSearchParams });
     
     const where: BookWhereInput = {};
     
     if (validatedParams.title) {
-      where.title = { contains: validatedParams.title, mode: 'insensitive' };
+      where.title = { contains: validatedParams.title };
     }
     if (validatedParams.author) {
-      where.author = { contains: validatedParams.author, mode: 'insensitive' };
+      where.author = { contains: validatedParams.author };
     }
     if (validatedParams.status) {
       where.status = validatedParams.status as ReadingStatus;
@@ -194,7 +195,7 @@ export async function getBooks(searchParams: { [key: string]: string | string[] 
       where.pages = validatedParams.pages;
     }
     if (validatedParams.genre) {
-      where.genre = { name: { contains: validatedParams.genre, mode: 'insensitive' } };
+      where.genre = { name: { contains: validatedParams.genre } };
     }
     
     const skip = (validatedParams.page - 1) * validatedParams.limit;
