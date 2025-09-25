@@ -62,33 +62,33 @@
 }
 
 .dark { /* Dark Theme */
-  --background: oklch(10% 0 0); /* Near Black */
-  --foreground: oklch(100% 0 0); /* White */
+  --background: oklch(16.3% 0.05 284);      /* Deep Violet/Grey */
+  --foreground: oklch(92% 0 0);             /* Off-White */
 
-  --card: oklch(15% 0 0); /* Dark Gray */
-  --card-foreground: oklch(100% 0 0); /* White */
+  --card: oklch(22.8% 0.05 281);            /* Slightly Lighter Violet */
+  --card-foreground: oklch(92% 0 0);        /* Off-White */
 
-  --popover: oklch(15% 0 0); /* Dark Gray */
-  --popover-foreground: oklch(100% 0 0); /* White */
+  --popover: oklch(22.8% 0.05 281);         /* Slightly Lighter Violet */
+  --popover-foreground: oklch(92% 0 0);     /* Off-White */
 
-  --primary: oklch(70% 0.05 300); /* Lilac */
-  --primary-foreground: oklch(100% 0 0); /* White */
+  --primary: oklch(46% 0.23 280);           /* Purple */
+  --primary-foreground: oklch(100% 0 0);    /* White */
 
-  --secondary: oklch(20% 0.02 300); /* Darker Lilac */
-  --secondary-foreground: oklch(100% 0 0); /* White */
+  --secondary: oklch(22.8% 0.05 281);       /* Slightly Lighter Violet */
+  --secondary-foreground: oklch(92% 0 0);   /* Off-White */
 
-  --muted: oklch(20% 0 0); /* Dark Gray */
-  --muted-foreground: oklch(70% 0 0); /* Light Gray */
+  --muted: oklch(22.8% 0.05 281);           /* Slightly Lighter Violet */
+  --muted-foreground: oklch(70% 0 0);       /* Light Gray */
 
-  --accent: oklch(70% 0.05 300); /* Lilac */
-  --accent-foreground: oklch(100% 0 0); /* White */
+  --accent: oklch(46% 0.23 280);            /* Purple */
+  --accent-foreground: oklch(100% 0 0);     /* White */
 
-  --destructive: oklch(40% 0.15 20); /* Carmine */
-  --destructive-foreground: oklch(100% 0 0); /* White */
+  --destructive: oklch(52% 0.22 15);        /* Carmine */
+  --destructive-foreground: oklch(100% 0 0);/* White */
 
-  --border: oklch(20% 0 0); /* Dark Gray */
-  --input: oklch(20% 0 0); /* Dark Gray */
-  --ring: oklch(70% 0.05 300); /* Lilac */
+  --border: oklch(22.8% 0.05 281);          /* Slightly Lighter Violet */
+  --input: oklch(22.8% 0.05 281);           /* Slightly Lighter Violet */
+  --ring: oklch(46% 0.23 280);              /* Purple */
 }
 
 

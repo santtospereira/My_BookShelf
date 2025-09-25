@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/card";
 import { BookOpen, CheckCircle2, FileText, Library } from "lucide-react";
 import GenreChart from '@/components/genre-chart';
+import { cn } from '@/lib/utils';
 
 async function getDashboardData() {
   const books = await prisma.book.findMany({
@@ -66,15 +67,18 @@ async function getDashboardData() {
 export default async function Home() {
   const { overview, genreData } = await getDashboardData();
 
+  const pausedColor = overview.paused >= 3 ? 'text-destructive' : 'text-primary';
+  const abandonedColor = overview.abandoned >= 3 ? 'text-destructive' : 'text-primary';
+
   return (
     <main className="flex min-h-screen flex-col items-center p-8 md:p-12 lg:p-24">
       <div className="w-full max-w-5xl mb-12 flex justify-between items-center">
-        <h1 className="text-4xl font-bold text-center md:text-left">Dashboard da Biblioteca</h1>
+        <h1 className="text-4xl font-bold text-center md:text-left text-primary">Dashboard da Biblioteca</h1>
         
       </div>
 
       <div className="w-full max-w-5xl grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-12">
-        <Card>
+        <Card className="border-primary/20">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
               Total de Livros
@@ -82,11 +86,11 @@ export default async function Home() {
             <Library className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{overview.totalBooks}</div>
+            <div className="text-2xl font-extrabold text-primary">{overview.totalBooks}</div>
           </CardContent>
         </Card>
         
-        <Card>
+        <Card className="border-primary/20">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
               Livros em Leitura
@@ -94,11 +98,11 @@ export default async function Home() {
             <BookOpen className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{overview.readingNow}</div>
+            <div className="text-2xl font-extrabold text-primary">{overview.readingNow}</div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-primary/20">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
               Livros Finalizados
@@ -106,11 +110,11 @@ export default async function Home() {
             <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{overview.finishedBooks}</div>
+            <div className="text-2xl font-extrabold text-primary">{overview.finishedBooks}</div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-primary/20">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
               Total de Páginas Lidas
@@ -118,51 +122,51 @@ export default async function Home() {
             <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{overview.totalPagesRead.toLocaleString('pt-BR')}</div>
+            <div className="text-2xl font-extrabold text-primary">{overview.totalPagesRead.toLocaleString('pt-BR')}</div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-primary/20">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
               Quero Ler
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{overview.wantToRead}</div>
+            <div className="text-2xl font-extrabold text-primary">{overview.wantToRead}</div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-primary/20">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
               Pausados
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{overview.paused}</div>
+            <div className={cn("text-2xl font-extrabold", pausedColor)}>{overview.paused}</div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-primary/20">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
               Abandonados
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{overview.abandoned}</div>
+            <div className={cn("text-2xl font-extrabold", abandonedColor)}>{overview.abandoned}</div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-primary/20">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
               Progresso Médio
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{overview.averageProgress.toFixed(1)}%</div>
+            <div className="text-2xl font-extrabold text-primary">{overview.averageProgress.toFixed(1)}%</div>
           </CardContent>
         </Card>
       </div>
