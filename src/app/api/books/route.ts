@@ -1,9 +1,19 @@
 import { NextRequest } from 'next/server'
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient, ReadingStatus } from '@prisma/client'
 import { handleApiError, createSuccessResponse } from '@/lib/api-utils'
-import { booksSearchSchema, createBookSchema, CreateBookInput } from '@/lib/validations'
+import { booksSearchSchema, bookFormSchema, BookFormInput } from '@/lib/validations'
 
 const prisma = new PrismaClient()
+
+interface BookWhereInput {
+  title?: { contains: string };
+  author?: { contains: string };
+  status?: ReadingStatus; // Changed type to ReadingStatus
+  isbn?: string;
+  year?: number;
+  pages?: number;
+  genre?: { name: { contains: string } };
+}
 
 // GET /api/books - Listar todos os livros com filtros
 export async function GET(request: NextRequest) {
@@ -17,7 +27,7 @@ export async function GET(request: NextRequest) {
     const validatedParams = booksSearchSchema.parse(params)
     
     // Construir filtros do Prisma
-    const where: any = {}
+    const where: BookWhereInput = {}
     
     if (validatedParams.title) {
       where.title = {
@@ -32,7 +42,7 @@ export async function GET(request: NextRequest) {
     }
     
     if (validatedParams.status) {
-      where.status = validatedParams.status
+      where.status = validatedParams.status as ReadingStatus // Cast to ReadingStatus
     }
     
     if (validatedParams.isbn) {
@@ -96,7 +106,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const validatedData: CreateBookInput = createBookSchema.parse(body)
+    const validatedData: BookFormInput = bookFormSchema.parse(body)
     
     // Verificar se o gênero existe (se fornecido)
     if (validatedData.genreId) {

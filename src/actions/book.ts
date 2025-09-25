@@ -3,62 +3,45 @@
 import { z } from "zod";
 import { redirect } from 'next/navigation';
 import prisma from '@/lib/prisma';
-import { GENRES, STATUS, RATINGS } from "@/lib/constants";
-
-const formSchema = z.object({
-  title: z.string().min(2, {
-    message: "O título deve ter no mínimo 2 caracteres.",
-  }),
-  author: z.string().min(2, {
-    message: "O nome do autor deve ter no mínimo 2 caracteres.",
-  }),
-  pages: z.coerce.number().optional(),
-  currentPage: z.coerce.number().optional(),
-  status: z.enum(STATUS, {
-    errorMap: () => ({ message: "Por favor, selecione um status de leitura." }),
-  }).optional(),
-  isbn: z.string().optional(),
-  cover: z.string().url("A URL da capa deve ser válida.").or(z.literal('')).optional(),
-  genre: z.string().optional(),
-  rating: z.enum(["1", "2", "3", "4", "5"], {
-    errorMap: () => ({ message: "Por favor, selecione uma avaliação." }),
-  }).optional(),
-  synopsis: z.string().optional(),
-  year: z.coerce.number().optional(),
-});
-
+import { bookFormSchema } from "@/lib/validations";
 import { revalidatePath } from "next/cache";
 
+// Função para limpar os dados do formulário validados
+const cleanDataForPrisma = (data: z.infer<typeof bookFormSchema>) => {
+  const cleaned: any = {};
+  for (const key in data) {
+    const value = data[key as keyof typeof data];
+    if (value === '' || value === 'none') {
+      cleaned[key] = null;
+    } else {
+      cleaned[key] = value;
+    }
+  }
+  return cleaned;
+};
+
 // Server Action para adicionar um livro
-export async function addBookAction(formData: FormData) {
+export async function addBookAction(formData: any) {
   'use server';
 
-  const rawFormData = Object.fromEntries(formData.entries());
-  const validationResult = formSchema.safeParse(rawFormData);
+  const validationResult = bookFormSchema.safeParse(formData);
 
   if (!validationResult.success) {
+    console.error("Validation failed:", validationResult.error.flatten().fieldErrors);
     return {
       success: false,
       errors: validationResult.error.flatten().fieldErrors,
     };
   }
 
+  const cleanedData = cleanDataForPrisma(validationResult.data);
+
   try {
     await prisma.book.create({
-      data: {
-        title: validationResult.data.title,
-        author: validationResult.data.author,
-        genre: validationResult.data.genre || null,
-        pages: validationResult.data.pages || null,
-        currentPage: validationResult.data.currentPage || null,
-        status: validationResult.data.status || null,
-        isbn: validationResult.data.isbn || null,
-        cover: validationResult.data.cover || null,
-        rating: validationResult.data.rating ? parseInt(validationResult.data.rating) : null,
-        synopsis: validationResult.data.synopsis || null,
-        year: validationResult.data.year || null,
-      },
+      data: cleanedData,
     });
+
+    console.log("Book created successfully");
 
     revalidatePath('/books');
     return {
@@ -74,11 +57,10 @@ export async function addBookAction(formData: FormData) {
 }
 
 // Server Action para editar um livro
-export async function editBookAction(id: string, formData: FormData) {
+export async function editBookAction(id: string, formData: any) {
   'use server';
 
-  const rawFormData = Object.fromEntries(formData.entries());
-  const validationResult = formSchema.safeParse(rawFormData);
+  const validationResult = bookFormSchema.safeParse(formData);
 
   if (!validationResult.success) {
     return {
@@ -87,24 +69,14 @@ export async function editBookAction(id: string, formData: FormData) {
     };
   }
 
+  const cleanedData = cleanDataForPrisma(validationResult.data);
+
   try {
     await prisma.book.update({
       where: {
         id,
       },
-      data: {
-        title: validationResult.data.title,
-        author: validationResult.data.author,
-        genre: validationResult.data.genre || null,
-        pages: validationResult.data.pages || null,
-        currentPage: validationResult.data.currentPage || null,
-        status: validationResult.data.status || null,
-        isbn: validationResult.data.isbn || null,
-        cover: validationResult.data.cover || null,
-        rating: validationResult.data.rating ? parseInt(validationResult.data.rating) : null,
-        synopsis: validationResult.data.synopsis || null,
-        year: validationResult.data.year || null,
-      },
+      data: cleanedData,
     });
 
     revalidatePath('/books');
@@ -166,4 +138,17 @@ export async function fetchBookDataByISBN(isbn: string) {
   }
 
   return null;
+}
+
+export async function getBookById(id: string) {
+  try {
+    const book = await prisma.book.findUnique({
+      where: { id },
+      include: { genre: true },
+    });
+    return book;
+  } catch (error) {
+    console.error("Error fetching book by ID:", error);
+    return null;
+  }
 }

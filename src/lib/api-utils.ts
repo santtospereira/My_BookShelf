@@ -4,7 +4,7 @@ import { ZodError } from 'zod'
 export interface ApiError {
   message: string
   code?: string
-  details?: any
+  details?: unknown
 }
 
 export function handleApiError(error: unknown): NextResponse {
@@ -40,7 +40,7 @@ export function handleApiError(error: unknown): NextResponse {
   )
 }
 
-export function createSuccessResponse(data: any, status = 200) {
+export function createSuccessResponse(data: unknown, status = 200) {
   return NextResponse.json(data, { status })
 }
 

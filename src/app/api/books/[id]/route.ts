@@ -8,11 +8,13 @@ const prisma = new PrismaClient()
 // GET /api/books/[id] - Obter detalhes de um livro
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
+    const resolvedParams = await context.params;
+    const { id } = resolvedParams;
     const book = await prisma.book.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         genre: true
       }
@@ -31,12 +33,14 @@ export async function GET(
 // PUT /api/books/[id] - Atualizar livro existente
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
+    const resolvedParams = await context.params;
+    const { id } = resolvedParams;
     // Verificar se o livro existe
     const existingBook = await prisma.book.findUnique({
-      where: { id: params.id }
+      where: { id },
     })
     
     if (!existingBook) {
@@ -62,7 +66,7 @@ export async function PUT(
       const bookWithSameISBN = await prisma.book.findFirst({
         where: {
           isbn: validatedData.isbn,
-          id: { not: params.id }
+          id: { not: id }
         }
       })
       
@@ -76,7 +80,7 @@ export async function PUT(
     }
     
     const updatedBook = await prisma.book.update({
-      where: { id: params.id },
+      where: { id },
       data: validatedData,
       include: {
         genre: true
@@ -92,12 +96,14 @@ export async function PUT(
 // DELETE /api/books/[id] - Remover livro
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
+    const resolvedParams = await context.params;
+    const { id } = resolvedParams;
     // Verificar se o livro existe
     const existingBook = await prisma.book.findUnique({
-      where: { id: params.id }
+      where: { id },
     })
     
     if (!existingBook) {
@@ -105,7 +111,7 @@ export async function DELETE(
     }
     
     await prisma.book.delete({
-      where: { id: params.id }
+      where: { id },
     })
     
     return createSuccessResponse(

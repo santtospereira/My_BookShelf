@@ -38,6 +38,9 @@ export default async function BookDetailsPage({ params }: Props) {
     where: {
       id,
     },
+    include: {
+      genre: true,
+    },
   });
 
   if (!book) {
@@ -82,7 +85,7 @@ export default async function BookDetailsPage({ params }: Props) {
                 {book.genre && (
                   <div className="flex justify-between">
                     <span className="font-semibold">Gênero</span>
-                    <span className="bg-secondary text-secondary-foreground text-xs px-2 py-1 rounded-full">{book.genre}</span>
+                    <span className="bg-secondary text-secondary-foreground text-xs px-2 py-1 rounded-full">{book.genre.name}</span>
                   </div>
                 )}
                 {book.status && (

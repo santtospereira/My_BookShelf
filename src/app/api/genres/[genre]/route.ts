@@ -7,11 +7,13 @@ const prisma = new PrismaClient()
 // DELETE /api/genres/[genre] - Remover gênero
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { genre: string } }
+  context: { params: Promise<{ genre: string }> }
 ) {
   try {
+    const resolvedParams = await context.params;
+    const { genre } = resolvedParams;
     // Decodificar o nome do gênero da URL
-    const genreName = decodeURIComponent(params.genre)
+    const genreName = decodeURIComponent(genre)
     
     // Buscar o gênero pelo nome
     const existingGenre = await prisma.genre.findFirst({

@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from '@/components/ui/button';
 import DeleteBookButton from '@/components/delete-book-button';
 import BookCover from '@/components/book-cover';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { ChevronLeft, ChevronRight, Search, Filter } from 'lucide-react';
 
 interface Book {
@@ -84,15 +84,16 @@ export default function BooksList() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const [filters, setFilters] = useState<Filters>({
-    title: '',
-    author: '',
-    genre: '',
-    status: '',
-    year: '',
-    page: 1,
-    limit: 5
+    title: searchParams.get('title') || '',
+    author: searchParams.get('author') || '',
+    genre: searchParams.get('genre') || '',
+    status: searchParams.get('status') || '',
+    year: searchParams.get('year') || '',
+    page: parseInt(searchParams.get('page') || '1'),
+    limit: parseInt(searchParams.get('limit') || '5')
   });
 
   const [debouncedFilters, setDebouncedFilters] = useState(filters);
@@ -176,6 +177,18 @@ export default function BooksList() {
       ...(key !== 'page' && key !== 'limit' ? { page: 1 } : {})
     }));
   };
+
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (filters.title) params.set('title', filters.title);
+    if (filters.author) params.set('author', filters.author);
+    if (filters.genre) params.set('genre', filters.genre);
+    if (filters.status) params.set('status', filters.status);
+    if (filters.year) params.set('year', filters.year);
+    params.set('page', filters.page.toString());
+    params.set('limit', filters.limit.toString());
+    router.push(`?${params.toString()}`);
+  }, [filters, router]);
 
   const handlePageChange = (newPage: number) => {
     handleFilterChange('page', newPage);

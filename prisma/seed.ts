@@ -12,12 +12,18 @@ async function main() {
   // Primeiro, criar os gêneros
   const genres = [
     { name: 'Fantasia' },
-    { name: 'Ficção Científica' },
-    { name: 'História' },
-    { name: 'Autoajuda' },
     { name: 'Romance' },
-    { name: 'Mistério' },
-    { name: 'Biografia' }
+    { name: 'Aventura' },
+    { name: 'Conto / Fábula' },
+    { name: 'Suspense / Mistério' },
+    { name: 'Biografia' },
+    { name: 'Filosofia' },
+    { name: 'Psicologia' },
+    { name: 'Tecnologia' },
+    { name: 'Filosofia Política' },
+    { name: 'História' },
+    { name: 'Ficção Científica' },
+    { name: 'Ficção' },
   ];
 
   const createdGenres = [];
@@ -84,18 +90,6 @@ async function main() {
       currentPage: 120,
     },
     {
-      title: 'O Poder do Hábito',
-      author: 'Charles Duhigg',
-      genreId: genreMap['Autoajuda'],
-      year: 2012,
-      pages: 400,
-      rating: 4,
-      synopsis: 'Um jornalista do New York Times examina como os hábitos funcionam e como podemos transformá-los em nossas vidas, empresas e sociedades.',
-      cover: 'https://images-na.ssl-images-amazon.com/images/I/81CXtV3STgL.jpg',
-      status: ReadingStatus.LIDO,
-      currentPage: 400,
-    },
-    {
       title: 'Orgulho e Preconceito',
       author: 'Jane Austen',
       genreId: genreMap['Romance'],
@@ -110,7 +104,7 @@ async function main() {
     {
       title: 'O Nome da Rosa',
       author: 'Umberto Eco',
-      genreId: genreMap['Mistério'],
+      genreId: genreMap['Suspense / Mistério'],
       year: 1980,
       pages: 624,
       rating: 4,
@@ -152,6 +146,42 @@ async function main() {
       synopsis: 'Uma exploração fascinante dos conceitos fundamentais da física moderna, incluindo o Big Bang, buracos negros e a natureza do tempo e do espaço.',
       cover: 'https://images-na.ssl-images-amazon.com/images/I/81CQ1cyBhyL.jpg',
       status: ReadingStatus.QUERO_LER,
+    },
+    {
+      title: '1984',
+      author: 'George Orwell',
+      genreId: genreMap['Ficção'],
+      year: 1949,
+      pages: 328,
+      rating: 5,
+      synopsis: 'Um romance distópico que descreve um futuro totalitário onde o governo controla todos os aspectos da vida.',
+      cover: 'https://images-na.ssl-images-amazon.com/images/I/71+o30s-YQL.jpg',
+      status: ReadingStatus.LIDO,
+      currentPage: 328,
+    },
+    {
+      title: 'O Pequeno Príncipe',
+      author: 'Antoine de Saint-Exupéry',
+      genreId: genreMap['Conto / Fábula'],
+      year: 1943,
+      pages: 96,
+      rating: 5,
+      synopsis: 'Uma fábula filosófica sobre um pequeno príncipe que viaja por vários planetas, encontrando diferentes personagens e aprendendo sobre a vida, o amor e a perda.',
+      cover: 'https://images-na.ssl-images-amazon.com/images/I/81+o30s-YQL.jpg',
+      status: ReadingStatus.LIDO,
+      currentPage: 96,
+    },
+    {
+      title: 'Cosmos',
+      author: 'Carl Sagan',
+      genreId: genreMap['Tecnologia'], // Mapeado para Tecnologia, pois não há um gênero 'Ciência' específico
+      year: 1980,
+      pages: 365,
+      rating: 5,
+      synopsis: 'Uma exploração da ciência e do universo, abrangendo desde a origem da vida até a vastidão do espaço.',
+      cover: 'https://images-na.ssl-images-amazon.com/images/I/81+o30s-YQL.jpg',
+      status: ReadingStatus.LENDO,
+      currentPage: 150,
     },
   ];
 

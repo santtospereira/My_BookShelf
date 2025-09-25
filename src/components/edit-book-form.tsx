@@ -94,8 +94,8 @@ const formSchema = z.object({
   isbn: z.string().optional(),
   cover: z.string().url("A URL da capa deve ser válida.").or(z.literal('')).optional(),
   genreId: z.string().optional(),
-  rating: z.union([z.string(), z.number()]).transform((val) => {
-    if (val === '' || val === null || val === undefined) return undefined;
+  rating: z.union([z.string(), z.number(), z.literal("none")]).transform((val) => {
+    if (val === 'none' || val === '' || val === null || val === undefined) return undefined;
     const num = typeof val === 'string' ? parseInt(val) : val;
     return isNaN(num) ? undefined : num;
   }).optional(),
@@ -152,7 +152,7 @@ export default function EditBookForm({ book }: Props) {
     fetchGenres();
   }, []);
 
-  async function onSubmit(values: any) {
+  async function onSubmit(values: FormData) {
     try {
       const response = await fetch(`/api/books/${book.id}`, {
         method: 'PUT',
