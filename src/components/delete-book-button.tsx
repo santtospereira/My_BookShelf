@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/dialog';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
+import { deleteBookAction } from '@/actions/book'; // Importar a Server Action
 
 interface Props {
   bookId: string;
@@ -28,23 +29,16 @@ export default function DeleteBookButton({ bookId, onDelete }: Props) {
     try {
       setIsDeleting(true);
       
-      const response = await fetch(`/api/books/${bookId}`, {
-        method: 'DELETE',
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Erro ao excluir o livro');
-      }
+      await deleteBookAction(bookId);
 
       toast.success('Livro excluído com sucesso!');
       setIsOpen(false);
       
-      // Se tem callback, chama ele (para atualizar a lista)
+      // O onDelete (que chama router.refresh()) é chamado para atualizar a lista.
       if (onDelete) {
         onDelete();
       } else {
-        // Se não tem callback, navega para a página de livros
+        // Fallback: navega para a página de livros e força a atualização.
         router.push('/books');
         router.refresh();
       }

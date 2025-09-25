@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -11,6 +11,7 @@ import BookCover from '@/components/book-cover';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ChevronLeft, ChevronRight, Search, Filter } from 'lucide-react';
 
+// Tipos de dados permanecem os mesmos
 interface Book {
   id: string;
   title: string;
@@ -24,30 +25,28 @@ interface Book {
   status: string | null;
   isbn: string | null;
   genreId: string | null;
-  genre: {
-    id: string;
-    name: string;
-  } | null;
+  genre: { id: string; name: string; } | null;
 }
 
 interface Genre {
   id: string;
   name: string;
-  _count: {
-    books: number;
-  };
+  _count: { books: number; };
 }
 
-interface BooksResponse {
-  books: Book[];
-  pagination: {
-    page: number;
-    limit: number;
-    totalCount: number;
-    totalPages: number;
-    hasNext: boolean;
-    hasPrev: boolean;
-  };
+interface Pagination {
+  page: number;
+  limit: number;
+  totalCount: number;
+  totalPages: number;
+  hasNext: boolean;
+  hasPrev: boolean;
+}
+
+interface BooksListProps {
+  initialBooks: Book[];
+  initialPagination: Pagination;
+  genres: Genre[];
 }
 
 interface Filters {
@@ -78,11 +77,7 @@ function Rating({ value }: { value: number | null }) {
   );
 }
 
-export default function BooksList() {
-  const [booksData, setBooksData] = useState<BooksResponse | null>(null);
-  const [genres, setGenres] = useState<Genre[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+export default function BooksList({ initialBooks, initialPagination, genres }: BooksListProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -96,102 +91,29 @@ export default function BooksList() {
     limit: parseInt(searchParams.get('limit') || '5')
   });
 
-  const [debouncedFilters, setDebouncedFilters] = useState(filters);
-
-  // Debounce para filtros de texto
+  // Efeito para atualizar a URL quando os filtros mudam
   useEffect(() => {
     const timer = setTimeout(() => {
-      setDebouncedFilters(filters);
-    }, 500);
+      const params = new URLSearchParams();
+      if (filters.title) params.set('title', filters.title);
+      if (filters.author) params.set('author', filters.author);
+      if (filters.genre) params.set('genre', filters.genre);
+      if (filters.status) params.set('status', filters.status);
+      if (filters.year) params.set('year', filters.year);
+      params.set('page', filters.page.toString());
+      params.set('limit', filters.limit.toString());
+      router.push(`?${params.toString()}`);
+    }, 300); // Debounce para evitar muitas requisições
 
     return () => clearTimeout(timer);
-  }, [filters.title, filters.author, filters.year]);
-
-  // Aplicar outros filtros imediatamente
-  useEffect(() => {
-    setDebouncedFilters(prev => ({
-      ...prev,
-      genre: filters.genre,
-      status: filters.status,
-      page: filters.page,
-      limit: filters.limit
-    }));
-  }, [filters.genre, filters.status, filters.page, filters.limit]);
-
-  const fetchBooks = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      const params = new URLSearchParams();
-      
-      if (debouncedFilters.title) params.append('title', debouncedFilters.title);
-      if (debouncedFilters.author) params.append('author', debouncedFilters.author);
-      if (debouncedFilters.genre) params.append('genre', debouncedFilters.genre);
-      if (debouncedFilters.status) params.append('status', debouncedFilters.status);
-      if (debouncedFilters.year) params.append('year', debouncedFilters.year);
-      
-      params.append('page', debouncedFilters.page.toString());
-      params.append('limit', debouncedFilters.limit.toString());
-
-      const response = await fetch(`/api/books?${params.toString()}`);
-      
-      if (!response.ok) {
-        throw new Error('Erro ao carregar livros');
-      }
-      
-      const data: BooksResponse = await response.json();
-      setBooksData(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro desconhecido');
-    } finally {
-      setLoading(false);
-    }
-  }, [debouncedFilters]);
-
-  const fetchGenres = useCallback(async () => {
-    try {
-      const response = await fetch('/api/genres');
-      if (!response.ok) throw new Error('Erro ao carregar gêneros');
-      
-      const data: Genre[] = await response.json();
-      setGenres(data);
-    } catch (err) {
-      console.error('Erro ao carregar gêneros:', err);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchBooks();
-  }, [fetchBooks]);
-
-  useEffect(() => {
-    fetchGenres();
-  }, [fetchGenres]);
-
-  const handleFilterChange = (key: keyof Filters, value: string | number) => {
-    setFilters(prev => ({
-      ...prev,
-      [key]: value,
-      // Reset para página 1 quando filtros mudam
-      ...(key !== 'page' && key !== 'limit' ? { page: 1 } : {})
-    }));
-  };
-
-  useEffect(() => {
-    const params = new URLSearchParams();
-    if (filters.title) params.set('title', filters.title);
-    if (filters.author) params.set('author', filters.author);
-    if (filters.genre) params.set('genre', filters.genre);
-    if (filters.status) params.set('status', filters.status);
-    if (filters.year) params.set('year', filters.year);
-    params.set('page', filters.page.toString());
-    params.set('limit', filters.limit.toString());
-    router.push(`?${params.toString()}`);
   }, [filters, router]);
 
-  const handlePageChange = (newPage: number) => {
-    handleFilterChange('page', newPage);
+  const handleFilterChange = (key: keyof Omit<Filters, 'page'>, value: string) => {
+    setFilters(prev => ({ ...prev, [key]: value, page: 1 }));
+  };
+
+  const handlePaginationChange = (key: 'page' | 'limit', value: number) => {
+    setFilters(prev => ({ ...prev, [key]: value }));
   };
 
   const clearFilters = () => {
@@ -202,36 +124,13 @@ export default function BooksList() {
       status: '',
       year: '',
       page: 1,
-      limit: 3
+      limit: 5
     });
   };
-  
-  if (loading) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="text-center py-16">
-          <div className="text-xl">Carregando livros...</div>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="text-center py-16">
-          <div className="text-xl text-red-500">Erro: {error}</div>
-          <Button onClick={() => fetchBooks()} className="mt-4">
-            Tentar Novamente
-          </Button>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="container mx-auto px-4 py-8">
-      {/* Filtros Avançados */}
+      {/* Filtros */}
       <div className="mb-8 space-y-4">
         <div className="flex items-center gap-2 mb-4">
           <Filter className="h-5 w-5" />
@@ -242,7 +141,6 @@ export default function BooksList() {
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {/* Busca por título */}
           <div className="relative">
             <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
             <Input
@@ -253,14 +151,12 @@ export default function BooksList() {
             />
           </div>
 
-          {/* Busca por autor */}
           <Input
             placeholder="Buscar por autor..."
             value={filters.author}
             onChange={(e) => handleFilterChange('author', e.target.value)}
           />
 
-          {/* Filtro por gênero */}
           <Select 
             onValueChange={(value) => handleFilterChange('genre', value === 'all' ? '' : value)} 
             value={filters.genre || 'all'}
@@ -278,7 +174,6 @@ export default function BooksList() {
             </SelectContent>
           </Select>
 
-          {/* Filtro por status */}
           <Select 
             onValueChange={(value) => handleFilterChange('status', value === 'all' ? '' : value)} 
             value={filters.status || 'all'}
@@ -298,10 +193,7 @@ export default function BooksList() {
         </div>
 
         <div className="flex gap-4 items-center">
-          
-
-          {/* Itens por página */}
-          <Select onValueChange={(value) => handleFilterChange('limit', parseInt(value))} value={filters.limit.toString()}>
+          <Select onValueChange={(value) => handlePaginationChange('limit', parseInt(value))} value={filters.limit.toString()}>
             <SelectTrigger className="w-32">
               <SelectValue />
             </SelectTrigger>
@@ -317,19 +209,17 @@ export default function BooksList() {
       </div>
 
       {/* Resultados e Paginação Info */}
-      {booksData && (
-        <div className="mb-6 flex justify-between items-center">
-          <div className="text-sm text-muted-foreground">
-            Mostrando {((booksData.pagination.page - 1) * booksData.pagination.limit) + 1} - {Math.min(booksData.pagination.page * booksData.pagination.limit, booksData.pagination.totalCount)} de {booksData.pagination.totalCount} livros
-          </div>
+      <div className="mb-6 flex justify-between items-center">
+        <div className="text-sm text-muted-foreground">
+          Mostrando {((initialPagination.page - 1) * initialPagination.limit) + 1} - {Math.min(initialPagination.page * initialPagination.limit, initialPagination.totalCount)} de {initialPagination.totalCount} livros
         </div>
-      )}
+      </div>
 
       {/* Lista de Livros */}
-      {booksData && booksData.books.length > 0 ? (
+      {initialBooks.length > 0 ? (
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6">
-            {booksData.books.map((book) => (
+            {initialBooks.map((book) => (
               <div key={book.id} >
                 <Card className="flex flex-col overflow-hidden rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 h-full">
                   <div className="aspect-w-2 aspect-h-3">
@@ -352,31 +242,15 @@ export default function BooksList() {
                   </div>
                   <CardFooter className="p-2 bg-muted/40 border-t">
                     <div className="flex w-full justify-around">
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="flex-1" 
-                        onClick={(e) => {
-                          e.preventDefault();
-                          router.push(`/books/${book.id}/edit`);
-                        }}
-                      >
-                        Editar
+                      <Button asChild variant="ghost" size="sm" className="flex-1">
+                        <Link href={`/books/${book.id}/edit`}>Editar</Link>
                       </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="flex-1" 
-                        onClick={(e) => {
-                          e.preventDefault();
-                          router.push(`/books/${book.id}`);
-                        }}
-                      >
-                        Ver
+                      <Button asChild variant="ghost" size="sm" className="flex-1">
+                        <Link href={`/books/${book.id}`}>Ver</Link>
                       </Button>
                       <DeleteBookButton 
                         bookId={book.id} 
-                        onDelete={() => fetchBooks()} 
+                        onDelete={() => router.refresh()} 
                       />
                     </div>
                   </CardFooter>
@@ -386,33 +260,33 @@ export default function BooksList() {
           </div>
 
           {/* Paginação */}
-          {booksData.pagination.totalPages > 1 && (
+          {initialPagination.totalPages > 1 && (
             <div className="mt-8 flex justify-center items-center gap-4">
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => handlePageChange(booksData.pagination.page - 1)}
-                disabled={!booksData.pagination.hasPrev}
+                onClick={() => handlePaginationChange('page', initialPagination.page - 1)}
+                disabled={!initialPagination.hasPrev}
               >
                 <ChevronLeft className="h-4 w-4 mr-1" />
                 Anterior
               </Button>
 
               <div className="flex gap-2">
-                {Array.from({ length: Math.min(5, booksData.pagination.totalPages) }, (_, i) => {
+                {Array.from({ length: Math.min(5, initialPagination.totalPages) }, (_, i) => {
                   const pageNumber = Math.max(1, Math.min(
-                    booksData.pagination.totalPages - 4,
-                    booksData.pagination.page - 2
+                    initialPagination.totalPages - 4,
+                    initialPagination.page - 2
                   )) + i;
 
-                  if (pageNumber > booksData.pagination.totalPages) return null;
+                  if (pageNumber > initialPagination.totalPages) return null;
 
                   return (
                     <Button
                       key={pageNumber}
-                      variant={pageNumber === booksData.pagination.page ? "default" : "outline"}
+                      variant={pageNumber === initialPagination.page ? "default" : "outline"}
                       size="sm"
-                      onClick={() => handlePageChange(pageNumber)}
+                      onClick={() => handlePaginationChange('page', pageNumber)}
                     >
                       {pageNumber}
                     </Button>
@@ -423,8 +297,8 @@ export default function BooksList() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => handlePageChange(booksData.pagination.page + 1)}
-                disabled={!booksData.pagination.hasNext}
+                onClick={() => handlePaginationChange('page', initialPagination.page + 1)}
+                disabled={!initialPagination.hasNext}
               >
                 Próxima
                 <ChevronRight className="h-4 w-4 ml-1" />

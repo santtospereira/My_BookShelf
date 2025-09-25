@@ -153,3 +153,96 @@ export async function getBookById(id: string) {
     return null;
   }
 }
+
+import { booksSearchSchema } from "@/lib/validations";
+import { ReadingStatus } from "@prisma/client";
+
+interface BookWhereInput {
+  title?: { contains: string; mode?: 'insensitive' };
+  author?: { contains: string; mode?: 'insensitive' };
+  status?: ReadingStatus;
+  isbn?: string;
+  year?: number;
+  pages?: number;
+  genre?: { name: { contains: string; mode?: 'insensitive' } };
+}
+
+export async function getBooks(searchParams: { [key: string]: string | string[] | undefined }) {
+  'use server';
+
+  try {
+    const validatedParams = booksSearchSchema.parse(searchParams);
+    
+    const where: BookWhereInput = {};
+    
+    if (validatedParams.title) {
+      where.title = { contains: validatedParams.title, mode: 'insensitive' };
+    }
+    if (validatedParams.author) {
+      where.author = { contains: validatedParams.author, mode: 'insensitive' };
+    }
+    if (validatedParams.status) {
+      where.status = validatedParams.status as ReadingStatus;
+    }
+    if (validatedParams.isbn) {
+      where.isbn = validatedParams.isbn;
+    }
+    if (validatedParams.year) {
+      where.year = validatedParams.year;
+    }
+    if (validatedParams.pages) {
+      where.pages = validatedParams.pages;
+    }
+    if (validatedParams.genre) {
+      where.genre = { name: { contains: validatedParams.genre, mode: 'insensitive' } };
+    }
+    
+    const skip = (validatedParams.page - 1) * validatedParams.limit;
+    
+    const [books, totalCount] = await prisma.$transaction([
+      prisma.book.findMany({
+        where,
+        include: { genre: true },
+        skip,
+        take: validatedParams.limit,
+        orderBy: { title: 'asc' },
+      }),
+      prisma.book.count({ where }),
+    ]);
+    
+    const totalPages = Math.ceil(totalCount / validatedParams.limit);
+    
+    return {
+      success: true,
+      data: {
+        books,
+        pagination: {
+          page: validatedParams.page,
+          limit: validatedParams.limit,
+          totalCount,
+          totalPages,
+          hasNext: validatedParams.page < totalPages,
+          hasPrev: validatedParams.page > 1,
+        },
+      },
+    };
+  } catch (error) {
+    console.error("Error fetching books:", error);
+    // Em caso de erro de validação ou outro, retorne um estado padrão
+    return {
+      success: false,
+      error: "Failed to fetch books",
+      data: {
+        books: [],
+        pagination: {
+          page: 1,
+          limit: 10,
+          totalCount: 0,
+          totalPages: 0,
+          hasNext: false,
+          hasPrev: false,
+        },
+      },
+    };
+  }
+}

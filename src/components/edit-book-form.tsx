@@ -30,6 +30,7 @@ import FormProgress from "@/components/form-progress";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 import { getBookByISBN } from "@/actions/google-books";
+import { editBookAction } from "@/actions/book"; // Importar a Server Action
 
 interface Book {
   id: string;
@@ -154,23 +155,11 @@ export default function EditBookForm({ book }: Props) {
 
   async function onSubmit(values: FormData) {
     try {
-      const response = await fetch(`/api/books/${book.id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...values,
-          // Converter valores "none" para null/undefined
-          genreId: values.genreId === 'none' ? null : values.genreId,
-          status: values.status === 'none' ? null : values.status,
-          rating: values.rating === 'none' ? null : parseInt(values.rating),
-        }),
-      });
+      const result = await editBookAction(book.id, values);
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Erro ao atualizar o livro');
+      if (!result?.success) {
+        const serverErrors = result?.errors ? Object.values(result.errors).flat().join(' ') : "Erro desconhecido";
+        throw new Error(serverErrors || "Não foi possível atualizar o livro.");
       }
 
       toast.success("Livro atualizado com sucesso!");
