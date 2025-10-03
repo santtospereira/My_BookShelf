@@ -4,6 +4,7 @@ import "./globals.css";
 import Header from "@/components/header";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "sonner";
+import AuthProvider from "@/components/auth-provider"; // Import AuthProvider
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -20,17 +21,19 @@ export default function RootLayout({
   return (
     <html lang="pt-BR" suppressHydrationWarning>
       <body className={`font-sans ${inter.variable} antialiased`}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="dark"
-          enableSystem
-        >
-          <div className="relative flex min-h-screen flex-col bg-background">
-            <Header />
-            <div className="flex-1">{children}</div>
-          </div>
-          <Toaster />
-        </ThemeProvider>
+        <AuthProvider> {/* Wrap with AuthProvider */}
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="dark"
+            enableSystem
+          >
+            <div className="relative flex min-h-screen flex-col bg-background">
+              <Header />
+              <div className="flex-1">{children}</div>
+            </div>
+            <Toaster />
+          </ThemeProvider>
+        </AuthProvider> {/* End AuthProvider */}
       </body>
     </html>
   );

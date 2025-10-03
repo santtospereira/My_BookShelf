@@ -1,4 +1,5 @@
-import { PrismaClient, ReadingStatus } from '@prisma/client';
+import * as bcrypt from 'bcryptjs'; // Importar bcryptjs
+import { PrismaClient, ReadingStatus, Role } from '@prisma/client'; // Adicionar Role
 
 const prisma = new PrismaClient();
 
@@ -11,6 +12,34 @@ const GENRES_TO_CREATE = [
 
 async function main() {
   console.log('Start seeding ...');
+
+  // --- Admin User Creation ---
+  const adminEmail = process.env.ADMIN_EMAIL;
+  const adminPassword = process.env.ADMIN_PASSWORD;
+
+  if (adminEmail && adminPassword) {
+    const existingAdmin = await prisma.user.findUnique({
+      where: { email: adminEmail },
+    });
+
+    if (!existingAdmin) {
+      const hashedPassword = await bcrypt.hash(adminPassword, 10);
+      await prisma.user.create({
+        data: {
+          email: adminEmail,
+          password: hashedPassword,
+          role: Role.ADMIN,
+          emailVerified: new Date(), // Mark as verified for admin
+        },
+      });
+      console.log(`Created admin user: ${adminEmail}`);
+    } else {
+      console.log(`Admin user ${adminEmail} already exists.`);
+    }
+  } else {
+    console.log("ADMIN_EMAIL or ADMIN_PASSWORD not set in .env. Skipping admin user creation.");
+  }
+  // --- End Admin User Creation ---
 
   // Deleta todos os livros e gêneros existentes para evitar duplicatas
   await prisma.book.deleteMany();

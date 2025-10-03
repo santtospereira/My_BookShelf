@@ -3,8 +3,10 @@
 import { z } from "zod";
 import { redirect } from 'next/navigation';
 import prisma from '@/lib/prisma';
-import { bookFormSchema } from "@/lib/validations";
+import { bookFormSchema, booksSearchSchema } from "@/lib/validations";
 import { revalidatePath } from "next/cache";
+import { auth } from "@/lib/auth";
+import { ReadingStatus, Role } from "@prisma/client";
 
 // Função para limpar os dados do formulário validados
 const cleanDataForPrisma = (data: z.infer<typeof bookFormSchema>) => {
@@ -22,12 +24,17 @@ const cleanDataForPrisma = (data: z.infer<typeof bookFormSchema>) => {
 
 // Server Action para adicionar um livro
 export async function addBookAction(formData: any) {
-  'use server';
+  const session = await auth();
+  if (!session?.user?.id) {
+    return {
+      success: false,
+      errors: { _server: ["Não autorizado. Você precisa estar logado para adicionar livros."] },
+    };
+  }
 
   const validationResult = bookFormSchema.safeParse(formData);
 
   if (!validationResult.success) {
-    console.error("Validation failed:", validationResult.error.flatten().fieldErrors);
     return {
       success: false,
       errors: validationResult.error.flatten().fieldErrors,
@@ -38,18 +45,16 @@ export async function addBookAction(formData: any) {
 
   try {
     await prisma.book.create({
-      data: cleanedData,
+      data: {
+        ...cleanedData,
+        userId: session.user.id, // Associar ao usuário logado
+      },
     });
 
-    console.log("Book created successfully");
-
     revalidatePath('/books');
-    return {
-      success: true,
-    };
-  } catch (error: any) { // Explicitly type error as any for full logging
+    return { success: true };
+  } catch (error: any) {
     console.error("Error adding book:", error);
-    console.error("Prisma error details:", error.message, error.code, error.meta); // Log more details
     return {
       success: false,
       errors: { _server: ["Não foi possível adicionar o livro. Tente novamente."] },
@@ -59,7 +64,21 @@ export async function addBookAction(formData: any) {
 
 // Server Action para editar um livro
 export async function editBookAction(id: string, formData: any) {
-  'use server';
+  const session = await auth();
+  if (!session?.user?.id) {
+    return {
+      success: false,
+      errors: { _server: ["Não autorizado."] },
+    };
+  }
+
+  const book = await prisma.book.findUnique({ where: { id } });
+  if (!book || book.userId !== session.user.id) {
+    return {
+      success: false,
+      errors: { _server: ["Livro não encontrado ou você não tem permissão para editá-lo."] },
+    };
+  }
 
   const validationResult = bookFormSchema.safeParse(formData);
 
@@ -74,17 +93,13 @@ export async function editBookAction(id: string, formData: any) {
 
   try {
     await prisma.book.update({
-      where: {
-        id,
-      },
+      where: { id }, // A verificação de permissão já foi feita
       data: cleanedData,
     });
 
     revalidatePath('/books');
-    revalidatePath('/'); // Revalidate home page to update stats
-    return {
-      success: true,
-    };
+    revalidatePath('/');
+    return { success: true };
   } catch (error) {
     console.error("Error updating book:", error);
     return {
@@ -96,15 +111,22 @@ export async function editBookAction(id: string, formData: any) {
 
 // Server Action para excluir um livro
 export async function deleteBookAction(id: string) {
-  'use server';
+  const session = await auth();
+  if (!session?.user?.id) {
+    return;
+  }
 
-  await prisma.book.delete({
-    where: {
-      id,
-    },
-  });
+  const book = await prisma.book.findUnique({ where: { id } });
 
-  console.log("Livro excluído com sucesso!");
+  // Permitir exclusão se o usuário for o dono ou um admin
+  if (!book || (book.userId !== session.user.id && session.user.role !== Role.ADMIN)) {
+    // Idealmente, deveria retornar um objeto de erro, mas vamos manter simples por enquanto
+    console.error("Unauthorized attempt to delete a book");
+    return;
+  }
+
+  await prisma.book.delete({ where: { id } });
+
   revalidatePath('/books');
 }
 
@@ -142,9 +164,12 @@ export async function fetchBookDataByISBN(isbn: string) {
 }
 
 export async function getBookById(id: string) {
+  const session = await auth();
+  if (!session?.user?.id) return null;
+
   try {
-    const book = await prisma.book.findUnique({
-      where: { id },
+    const book = await prisma.book.findFirst({
+      where: { id, userId: session.user.id }, // Apenas buscar livro do usuário logado
       include: { genre: true },
     });
     return book;
@@ -154,10 +179,8 @@ export async function getBookById(id: string) {
   }
 }
 
-import { booksSearchSchema } from "@/lib/validations";
-import { ReadingStatus } from "@prisma/client";
-
 interface BookWhereInput {
+  userId: string;
   title?: { contains: string };
   author?: { contains: string };
   status?: ReadingStatus;
@@ -168,35 +191,32 @@ interface BookWhereInput {
 }
 
 export async function getBooks(searchParams: { [key: string]: string | string[] | undefined }) {
-  'use server';
+  const session = await auth();
+  const defaultReturn = {
+    success: false,
+    error: "Failed to fetch books",
+    data: {
+      books: [],
+      pagination: { page: 1, limit: 10, totalCount: 0, totalPages: 0, hasNext: false, hasPrev: false },
+    },
+  };
+
+  if (!session?.user?.id) {
+    return defaultReturn;
+  }
 
   try {
-    const awaitedSearchParams = await Promise.resolve(searchParams);
-    const validatedParams = booksSearchSchema.parse({ ...awaitedSearchParams });
+    const validatedParams = booksSearchSchema.parse({ ...searchParams });
     
-    const where: BookWhereInput = {};
+    const where: BookWhereInput = { userId: session.user.id }; // Filtro base: apenas livros do usuário
     
-    if (validatedParams.title) {
-      where.title = { contains: validatedParams.title };
-    }
-    if (validatedParams.author) {
-      where.author = { contains: validatedParams.author };
-    }
-    if (validatedParams.status) {
-      where.status = validatedParams.status as ReadingStatus;
-    }
-    if (validatedParams.isbn) {
-      where.isbn = validatedParams.isbn;
-    }
-    if (validatedParams.year) {
-      where.year = validatedParams.year;
-    }
-    if (validatedParams.pages) {
-      where.pages = validatedParams.pages;
-    }
-    if (validatedParams.genre) {
-      where.genre = { name: { contains: validatedParams.genre } };
-    }
+    if (validatedParams.title) where.title = { contains: validatedParams.title };
+    if (validatedParams.author) where.author = { contains: validatedParams.author };
+    if (validatedParams.status) where.status = validatedParams.status as ReadingStatus;
+    if (validatedParams.isbn) where.isbn = validatedParams.isbn;
+    if (validatedParams.year) where.year = validatedParams.year;
+    if (validatedParams.pages) where.pages = validatedParams.pages;
+    if (validatedParams.genre) where.genre = { name: { contains: validatedParams.genre } };
     
     const skip = (validatedParams.page - 1) * validatedParams.limit;
     
@@ -229,21 +249,6 @@ export async function getBooks(searchParams: { [key: string]: string | string[] 
     };
   } catch (error) {
     console.error("Error fetching books:", error);
-    // Em caso de erro de validação ou outro, retorne um estado padrão
-    return {
-      success: false,
-      error: "Failed to fetch books",
-      data: {
-        books: [],
-        pagination: {
-          page: 1,
-          limit: 10,
-          totalCount: 0,
-          totalPages: 0,
-          hasNext: false,
-          hasPrev: false,
-        },
-      },
-    };
+    return defaultReturn;
   }
 }
