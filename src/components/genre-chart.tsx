@@ -10,7 +10,6 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useTheme } from "next-themes";
 
 interface GenreChartProps {
   data: {
@@ -20,9 +19,6 @@ interface GenreChartProps {
 }
 
 export default function GenreChart({ data }: GenreChartProps) {
-  const { theme } = useTheme();
-
-  const genreNameColor = theme === 'dark' ? '#FFFFFF' : '#000000'; // Branco no Dark, Preto no Light
 
   if (!data || data.length === 0) {
     return (
@@ -64,7 +60,7 @@ export default function GenreChart({ data }: GenreChartProps) {
                 width={100} 
                 tickLine={false} 
                 axisLine={false}
-                tick={{ fontSize: 12, fill: genreNameColor }}
+                tick={{ fontSize: 12, fill: '#000000' }}
               />
               <Tooltip 
                 cursor={{ fill: 'rgba(128, 128, 128, 0.1)' }}

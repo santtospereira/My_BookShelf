@@ -1,8 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-@custom-variant dark (&:is(.dark *));
-
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -59,36 +57,6 @@
   --border: oklch(90% 0 0); /* Light Gray */
   --input: oklch(90% 0 0); /* Light Gray */
   --ring: oklch(70% 0.05 300); /* Lilac */
-}
-
-.dark { /* Dark Theme */
-  --background: oklch(16.3% 0.05 284);      /* Deep Violet/Grey */
-  --foreground: oklch(92% 0 0);             /* Off-White */
-
-  --card: oklch(22.8% 0.05 281);            /* Slightly Lighter Violet */
-  --card-foreground: oklch(92% 0 0);        /* Off-White */
-
-  --popover: oklch(22.8% 0.05 281);         /* Slightly Lighter Violet */
-  --popover-foreground: oklch(92% 0 0);     /* Off-White */
-
-  --primary: oklch(46% 0.23 280);           /* Purple */
-  --primary-foreground: oklch(100% 0 0);    /* White */
-
-  --secondary: oklch(22.8% 0.05 281);       /* Slightly Lighter Violet */
-  --secondary-foreground: oklch(92% 0 0);   /* Off-White */
-
-  --muted: oklch(22.8% 0.05 281);           /* Slightly Lighter Violet */
-  --muted-foreground: oklch(70% 0 0);       /* Light Gray */
-
-  --accent: oklch(46% 0.23 280);            /* Purple */
-  --accent-foreground: oklch(100% 0 0);     /* White */
-
-  --destructive: oklch(52% 0.22 15);        /* Carmine */
-  --destructive-foreground: oklch(100% 0 0);/* White */
-
-  --border: oklch(22.8% 0.05 281);          /* Slightly Lighter Violet */
-  --input: oklch(22.8% 0.05 281);           /* Slightly Lighter Violet */
-  --ring: oklch(46% 0.23 280);              /* Purple */
 }
 
 
