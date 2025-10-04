@@ -22,17 +22,19 @@ export default function Header() {
           <div className="flex items-center gap-6"> {/* Group auth buttons and theme switcher */}
             <nav>
               <ul className="flex items-center gap-6">
-                <li>
-                  <Link href="/books" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
-                    Biblioteca
-                  </Link>
-                </li>
-                {session?.user && ( // Show "Adicionar Livro" if logged in
-                  <li>
-                    <Link href="/add-book" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
-                      Adicionar Livro
-                    </Link>
-                  </li>
+                {!loading && session?.user && ( // Render only when not loading and user is logged in
+                  <>
+                    <li>
+                      <Link href="/books" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
+                        Biblioteca
+                      </Link>
+                    </li>
+                    <li>
+                      <Link href="/add-book" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
+                        Adicionar Livro
+                      </Link>
+                    </li>
+                  </>
                 )}
               </ul>
             </nav>
