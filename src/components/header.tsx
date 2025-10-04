@@ -41,7 +41,7 @@ export default function Header() {
               {!loading && session?.user && (
                 <>
                   <span className="text-sm text-muted-foreground hidden md:inline">Olá, {session.user.name || session.user.email}!</span>
-                  <Button variant="ghost" onClick={() => signOut()}>Sair</Button>
+                  <Button variant="ghost" onClick={async () => { await signOut({ redirect: false }); window.location.href = '/'; }}>Sair</Button>
                 </>
               )}
               <ClientOnly> {/* Original ClientOnly wrapper */}

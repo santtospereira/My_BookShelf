@@ -2,8 +2,7 @@ import { withAuth } from "next-auth/middleware";
 import { NextResponse } from "next/server";
 
 export default withAuth(
-  // `withAuth` augments the `Request` with the user's token.
-  function middleware(req) {
+  async function middleware(req) {
     const { pathname } = req.nextUrl;
     const isAuthenticated = !!req.nextauth.token;
 
@@ -12,14 +11,24 @@ export default withAuth(
       return NextResponse.redirect(new URL("/dashboard", req.url));
     }
 
-    // If unauthenticated and trying to access /dashboard, redirect to signin
-    if (!isAuthenticated && pathname.startsWith("/dashboard")) {
-      return NextResponse.redirect(new URL("/auth/signin", req.url));
-    }
+    // For all other routes (which are considered protected by default),
+    // if not authenticated, withAuth will handle the redirect to signin.
+    // If authenticated, allow access.
+    return NextResponse.next();
   },
   {
     callbacks: {
-      authorized: ({ token }) => !!token,
+      authorized: ({ token, req }) => {
+        const { pathname } = req.nextUrl;
+
+        // Allow unauthenticated access to public routes
+        if (pathname === "/" || pathname.startsWith("/auth")) {
+          return true; // Allow access
+        }
+
+        // For all other routes, require authentication
+        return !!token;
+      },
     },
     pages: {
       signIn: "/auth/signin",
@@ -28,5 +37,5 @@ export default withAuth(
 );
 
 export const config = {
-  matcher: ["/", "/dashboard/:path*"], // Protect root and all routes under /dashboard
+  matcher: ["/", "/dashboard/:path*", "/auth/:path*"], // Match all routes that need middleware logic
 };
