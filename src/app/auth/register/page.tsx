@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 export default function RegisterPage() {
+  const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -24,6 +25,7 @@ export default function RegisterPage() {
     }
 
     const formData = new FormData();
+    formData.append('fullName', fullName);
     formData.append('email', email);
     formData.append('password', password);
 
@@ -45,6 +47,22 @@ export default function RegisterPage() {
         {message && <p className="text-green-500 text-center">{message}</p>}
         {errors?._server && <p className="text-red-500 text-center">{errors._server[0]}</p>}
         <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label htmlFor="fullName" className="block text-sm font-medium text-gray-700">
+              Nome Completo
+            </label>
+            <input
+              id="fullName"
+              name="fullName"
+              type="text"
+              autoComplete="name"
+              required
+              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+            />
+            {errors?.fullName && <p className="text-red-500 text-xs mt-1">{errors.fullName[0]}</p>}
+          </div>
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700">
               Email

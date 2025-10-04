@@ -9,15 +9,17 @@ import { redirect } from 'next/navigation'; // Importar redirect
 
 // Define a schema for registration input
 const registerSchema = z.object({
+  name: z.string().min(1, "O nome completo é obrigatório."),
   email: z.string().email("Email inválido."),
   password: z.string().min(6, "A senha deve ter no mínimo 6 caracteres."),
 });
 
 export async function registerUser(formData: FormData) {
+  const fullName = formData.get('fullName');
   const email = formData.get('email');
   const password = formData.get('password');
 
-  const validationResult = registerSchema.safeParse({ email, password });
+  const validationResult = registerSchema.safeParse({ name: fullName, email, password });
 
   if (!validationResult.success) {
     return {
@@ -44,6 +46,7 @@ export async function registerUser(formData: FormData) {
 
     const newUser = await prisma.user.create({
       data: {
+        name: data.name,
         email: data.email,
         password: hashedPassword,
         role: 'USER',

@@ -22,7 +22,7 @@ export default function SignInPage() {
       setError(result.error);
     } else {
       // Redirect to a protected page or home page
-      window.location.href = '/';
+      window.location.href = '/dashboard';
     }
   };
 

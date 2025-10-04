@@ -37,14 +37,7 @@ export default function Header() {
               </ul>
             </nav>
             <div className="flex items-center space-x-2"> {/* Group auth buttons and theme switcher */}
-              {!loading && !session?.user && (
-                <>
-                  <Button variant="ghost" onClick={() => signIn()}>Entrar</Button>
-                  <Button asChild>
-                    <Link href="/auth/register">Registrar</Link>
-                  </Button>
-                </>
-              )}
+
               {!loading && session?.user && (
                 <>
                   <span className="text-sm text-muted-foreground hidden md:inline">Olá, {session.user.name || session.user.email}!</span>
