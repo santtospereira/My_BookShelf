@@ -10,6 +10,7 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useTheme } from "next-themes";
 
 interface GenreChartProps {
   data: {
@@ -19,6 +20,9 @@ interface GenreChartProps {
 }
 
 export default function GenreChart({ data }: GenreChartProps) {
+  const { theme } = useTheme();
+
+  const genreNameColor = theme === 'dark' ? '#E0E0E0' : '#12121E'; // Usando as novas cores
 
   if (!data || data.length === 0) {
     return (
@@ -60,13 +64,13 @@ export default function GenreChart({ data }: GenreChartProps) {
                 width={100} 
                 tickLine={false} 
                 axisLine={false}
-                tick={{ fontSize: 12, fill: '#000000' }}
+                tick={{ fontSize: 12, fill: genreNameColor }}
               />
               <Tooltip 
                 cursor={{ fill: 'rgba(128, 128, 128, 0.1)' }}
                 contentStyle={{ 
-                  background: 'hsl(var(--background))', 
-                  borderColor: 'hsl(var(--border))' 
+                  background: 'var(--background)', 
+                  borderColor: 'var(--border)' 
                 }}
               />
               <Bar dataKey="total" name="Total de Livros" fill="var(--primary)" radius={[0, 4, 4, 0]} />

@@ -30,35 +30,64 @@
 
 :root { /* Light Theme */
   --radius: 0.625rem;
-  --background: oklch(100% 0 0); /* White */
-  --foreground: oklch(10% 0 0); /* Near Black */
+  --background: #FFFFFF;
+  --foreground: #12121E;
 
-  --card: oklch(100% 0 0); /* White */
-  --card-foreground: oklch(10% 0 0); /* Near Black */
+  --card: #FFFFFF;
+  --card-foreground: #12121E;
 
-  --popover: oklch(100% 0 0); /* White */
-  --popover-foreground: oklch(10% 0 0); /* Near Black */
+  --popover: #FFFFFF;
+  --popover-foreground: #12121E;
 
-  --primary: oklch(70% 0.05 300); /* Lilac */
-  --primary-foreground: oklch(100% 0 0); /* White */
+  --primary: #6200EE;
+  --primary-foreground: #FFFFFF;
 
-  --secondary: oklch(90% 0.02 300); /* Lighter Lilac */
-  --secondary-foreground: oklch(10% 0 0); /* Near Black */
+  --secondary: #FFFFFF;
+  --secondary-foreground: #12121E;
 
-  --muted: oklch(95% 0 0); /* Light Gray */
-  --muted-foreground: oklch(40% 0 0); /* Medium Gray */
+  --muted: #F0F0F0;
+  --muted-foreground: #606060;
 
-  --accent: oklch(70% 0.05 300); /* Lilac */
-  --accent-foreground: oklch(100% 0 0); /* White */
+  --accent: #6200EE;
+  --accent-foreground: #FFFFFF;
 
-  --destructive: oklch(40% 0.15 20); /* Carmine */
-  --destructive-foreground: oklch(100% 0 0); /* White */
+  --destructive: #B00020;
+  --destructive-foreground: #FFFFFF;
 
-  --border: oklch(90% 0 0); /* Light Gray */
-  --input: oklch(90% 0 0); /* Light Gray */
-  --ring: oklch(70% 0.05 300); /* Lilac */
+  --border: #E0E0E0;
+  --input: #E0E0E0;
+  --ring: #6200EE;
 }
 
+.dark { /* Dark Theme */
+  --background: #12121E;
+  --foreground: #E0E0E0;
+
+  --card: #1D1D2B;
+  --card-foreground: #E0E0E0;
+
+  --popover: #1D1D2B;
+  --popover-foreground: #E0E0E0;
+
+  --primary: #A779FF;
+  --primary-foreground: #FFFFFF;
+
+  --secondary: #1D1D2B;
+  --secondary-foreground: #E0E0E0;
+
+  --muted: #1D1D2B;
+  --muted-foreground: #A0A0A0;
+
+  --accent: #A779FF;
+  --accent-foreground: #FFFFFF;
+
+  --destructive: #DC3545;
+  --destructive-foreground: #FFFFFF;
+
+  --border: #303030;
+  --input: #303030;
+  --ring: #A779FF;
+}
 
 @layer base {
   * {
