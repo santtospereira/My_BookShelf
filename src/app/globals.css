@@ -24,7 +24,7 @@
   --color-card: var(--card);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
+  --radius-lg: var( --radius);
   --radius-xl: calc(var(--radius) + 4px);
 }
 
@@ -60,7 +60,7 @@
 }
 
 .dark { /* Dark Theme */
-  --background: #12121E;
+  --background: #0D0210;
   --foreground: #E0E0E0;
 
   --card: #1D1D2B;
@@ -69,7 +69,7 @@
   --popover: #1D1D2B;
   --popover-foreground: #E0E0E0;
 
-  --primary: #A779FF;
+  --primary: #BB86FC;
   --primary-foreground: #FFFFFF;
 
   --secondary: #1D1D2B;
