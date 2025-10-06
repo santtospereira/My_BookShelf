@@ -4,11 +4,25 @@ import { PrismaClient, ReadingStatus, Role } from '@prisma/client'; // Adicionar
 const prisma = new PrismaClient();
 
 // Lista de gêneros a serem criados
-const GENRES_TO_CREATE = [
-  "Fantasia", "Romance", "Aventura", "Conto / Fábula", 
-  "Suspense / Mistério", "Biografia", "Filosofia", "Psicologia", 
-  "Tecnologia", "Filosofia Política", "História", "Ficção Científica", "Ficção"
-] as const;
+export const GENRE_OPTIONS = [
+    'Romance',
+    'Fantasia',
+    'Aventura',
+    'Ficção Histórica',
+    'Ficção Científica',
+    'Distopia',
+    'Horror',
+    'Suspense / Thriller / Mistério',
+    'Contos / Novela',
+    'Poesia',
+    'Não-Ficção',
+    'Biografia',
+    'Autoajuda',
+    'Ensaio',
+    'Filosofia',
+    'Psicologia',
+    'História',
+];
 
 async function main() {
   console.log('Start seeding ...');
@@ -51,7 +65,7 @@ async function main() {
 
   // Criar os gêneros e armazenar seus IDs gerados
   console.log('Creating genres...');
-  for (const genreName of GENRES_TO_CREATE) {
+  for (const genreName of GENRE_OPTIONS) {
     const createdGenre = await prisma.genre.create({
       data: {
         name: genreName,

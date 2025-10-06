@@ -97,3 +97,13 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Fix for browser autofill styles */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-text-fill-color: var(--foreground) !important;
+  -webkit-box-shadow: 0 0 0 30px var(--background) inset !important;
+  box-shadow: 0 0 0 30px var(--background) inset !important;
+}

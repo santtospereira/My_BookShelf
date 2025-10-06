@@ -34,7 +34,7 @@ import { bookFormSchema, BookFormInput } from "@/lib/validations";
 interface Genre {
   id: string;
   name: string;
-  _count: {
+  _count?: {
     books: number;
   };
 }
