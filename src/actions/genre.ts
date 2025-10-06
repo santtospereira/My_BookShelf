@@ -8,6 +8,11 @@ export async function getAllGenres() {
       orderBy: {
         name: 'asc',
       },
+      include: {
+        _count: {
+          select: { books: true },
+        },
+      },
     });
     console.log("Gêneros buscados:", genres); // Adicionado para depuração
     return genres;
