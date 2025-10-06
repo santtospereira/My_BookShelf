@@ -5,7 +5,8 @@ import { redirect } from 'next/navigation';
 import prisma from '@/lib/prisma';
 import { bookFormSchema, booksSearchSchema } from "@/lib/validations";
 import { revalidatePath } from "next/cache";
-import { auth } from "@/lib/auth";
+import { getServerSession } from "next-auth/next";
+import { authConfig } from "@/lib/auth";
 import { ReadingStatus, Role } from "@prisma/client";
 
 // Função para limpar os dados do formulário validados
@@ -24,7 +25,7 @@ const cleanDataForPrisma = (data: z.infer<typeof bookFormSchema>) => {
 
 // Server Action para adicionar um livro
 export async function addBookAction(formData: any) {
-  const session = await auth();
+  const session = await getServerSession(authConfig);
   if (!session?.user?.id) {
     return {
       success: false,
@@ -64,7 +65,7 @@ export async function addBookAction(formData: any) {
 
 // Server Action para editar um livro
 export async function editBookAction(id: string, formData: any) {
-  const session = await auth();
+  const session = await getServerSession(authConfig);
   if (!session?.user?.id) {
     return {
       success: false,
@@ -111,7 +112,7 @@ export async function editBookAction(id: string, formData: any) {
 
 // Server Action para excluir um livro
 export async function deleteBookAction(id: string) {
-  const session = await auth();
+  const session = await getServerSession(authConfig);
   if (!session?.user?.id) {
     return;
   }
@@ -164,7 +165,7 @@ export async function fetchBookDataByISBN(isbn: string) {
 }
 
 export async function getBookById(id: string) {
-  const session = await auth();
+  const session = await getServerSession(authConfig);
   if (!session?.user?.id) return null;
 
   try {
@@ -191,7 +192,7 @@ interface BookWhereInput {
 }
 
 export async function getBooks(searchParams: { [key: string]: string | string[] | undefined }) {
-  const session = await auth();
+  const session = await getServerSession(authConfig);
   const defaultReturn = {
     success: false,
     error: "Failed to fetch books",
