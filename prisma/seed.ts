@@ -27,18 +27,20 @@ export const GENRE_OPTIONS = [
 async function main() {
   console.log('Start seeding ...');
 
+  let defaultUserId: string;
+
   // --- Admin User Creation ---
   const adminEmail = process.env.ADMIN_EMAIL;
   const adminPassword = process.env.ADMIN_PASSWORD;
 
   if (adminEmail && adminPassword) {
-    const existingAdmin = await prisma.user.findUnique({
+    let adminUser = await prisma.user.findUnique({
       where: { email: adminEmail },
     });
 
-    if (!existingAdmin) {
+    if (!adminUser) {
       const hashedPassword = await bcrypt.hash(adminPassword, 10);
-      await prisma.user.create({
+      adminUser = await prisma.user.create({
         data: {
           email: adminEmail,
           password: hashedPassword,
@@ -50,8 +52,26 @@ async function main() {
     } else {
       console.log(`Admin user ${adminEmail} already exists.`);
     }
+    defaultUserId = adminUser.id;
   } else {
-    console.log("ADMIN_EMAIL or ADMIN_PASSWORD not set in .env. Skipping admin user creation.");
+    console.log("ADMIN_EMAIL or ADMIN_PASSWORD not set in .env. Creating a default user for seeding.");
+    let defaultUser = await prisma.user.findFirst({
+      where: { email: "default@example.com" },
+    });
+    if (!defaultUser) {
+      const hashedPassword = await bcrypt.hash("password123", 10);
+      defaultUser = await prisma.user.create({
+        data: {
+          email: "default@example.com",
+          password: hashedPassword,
+          role: Role.USER,
+          emailVerified: new Date(),
+          name: "Default User",
+        },
+      });
+      console.log("Created default user for seeding: default@example.com");
+    }
+    defaultUserId = defaultUser!.id;
   }
   // --- End Admin User Creation ---
 
@@ -88,6 +108,7 @@ async function main() {
       cover: 'https://images-na.ssl-images-amazon.com/images/I/91+1SUO3vUL.jpg',
       status: ReadingStatus.LIDO,
       currentPage: 694,
+      userId: defaultUserId, // Assign to the default user
     },
     {
       title: 'Duna',
@@ -100,6 +121,7 @@ async function main() {
       cover: 'https://images-na.ssl-images-amazon.com/images/I/81dIAR2jR3L.jpg',
       status: ReadingStatus.LENDO,
       currentPage: 350,
+      userId: defaultUserId, // Assign to the default user
     },
     {
       title: 'O Guia do Mochileiro das Galáxias',
@@ -111,6 +133,7 @@ async function main() {
       synopsis: 'A saga de Arthur Dent, um inglês azarado que escapa da destruição da Terra com a ajuda de seu amigo Ford Prefect, um alienígena disfarçado.',
       cover: 'https://images-na.ssl-images-amazon.com/images/I/81o-7BPII4L.jpg',
       status: ReadingStatus.QUERO_LER,
+      userId: defaultUserId, // Assign to the default user
     },
     {
       title: 'Sapiens: Uma Breve História da Humanidade',
@@ -123,6 +146,7 @@ async function main() {
       cover: 'https://images-na.ssl-images-amazon.com/images/I/715afn3aYxL.jpg',
       status: ReadingStatus.PAUSADO,
       currentPage: 120,
+      userId: defaultUserId, // Assign to the default user
     },
     {
       title: 'Orgulho e Preconceito',
@@ -135,6 +159,7 @@ async function main() {
       cover: 'https://images-na.ssl-images-amazon.com/images/I/81DWBXHK-BL.jpg',
       status: ReadingStatus.LIDO,
       currentPage: 432,
+      userId: defaultUserId, // Assign to the default user
     },
     {
       title: 'O Nome da Rosa',
@@ -147,6 +172,7 @@ async function main() {
       cover: 'https://images-na.ssl-images-amazon.com/images/I/81qfKfUzKYL.jpg',
       status: ReadingStatus.PAUSADO,
       currentPage: 200,
+      userId: defaultUserId, // Assign to the default user
     },
     {
       title: 'Steve Jobs',
@@ -158,6 +184,7 @@ async function main() {
       synopsis: 'A biografia autorizada do co-fundador da Apple, baseada em mais de quarenta entrevistas com Jobs ao longo de dois anos, além de entrevistas com mais de cem familiares, amigos, adversários, concorrentes e colegas.',
       cover: 'https://images-na.ssl-images-amazon.com/images/I/81VStYnDGrL.jpg',
       status: ReadingStatus.QUERO_LER,
+      userId: defaultUserId, // Assign to the default user
     },
     {
       title: 'O Senhor dos Anéis: A Sociedade do Anel',
@@ -170,6 +197,7 @@ async function main() {
       cover: 'https://images-na.ssl-images-amazon.com/images/I/91b0C2YNSrL.jpg',
       status: ReadingStatus.LENDO,
       currentPage: 234,
+      userId: defaultUserId, // Assign to the default user
     },
     {
       title: 'Uma Breve História do Tempo',
@@ -181,6 +209,7 @@ async function main() {
       synopsis: 'Uma exploração fascinante dos conceitos fundamentais da física moderna, incluindo o Big Bang, buracos negros e a natureza do tempo e do espaço.',
       cover: 'https://images-na.ssl-images-amazon.com/images/I/81CQ1cyBhyL.jpg',
       status: ReadingStatus.QUERO_LER,
+      userId: defaultUserId, // Assign to the default user
     },
     {
       title: '1984',
@@ -193,11 +222,12 @@ async function main() {
       cover: 'https://images-na.ssl-images-amazon.com/images/I/71+o30s-YQL.jpg',
       status: ReadingStatus.LIDO,
       currentPage: 328,
+      userId: defaultUserId, // Assign to the default user
     },
     {
       title: 'O Pequeno Príncipe',
       author: 'Antoine de Saint-Exupéry',
-      genreId: genreMap['Conto / Fábula'],
+      genreId: genreMap['Contos / Novela'], // Corrigido o gênero
       year: 1943,
       pages: 96,
       rating: 5,
@@ -205,11 +235,12 @@ async function main() {
       cover: 'https://images-na.ssl-images-amazon.com/images/I/81+o30s-YQL.jpg',
       status: ReadingStatus.LIDO,
       currentPage: 96,
+      userId: defaultUserId, // Assign to the default user
     },
     {
       title: 'Cosmos',
       author: 'Carl Sagan',
-      genreId: genreMap['Tecnologia'], // Mapeado para Tecnologia, pois não há um gênero 'Ciência' específico
+      genreId: genreMap['Não-Ficção'], // Mapeado para Não-Ficção
       year: 1980,
       pages: 365,
       rating: 5,
@@ -217,6 +248,7 @@ async function main() {
       cover: 'https://images-na.ssl-images-amazon.com/images/I/81+o30s-YQL.jpg',
       status: ReadingStatus.LENDO,
       currentPage: 150,
+      userId: defaultUserId, // Assign to the default user
     },
   ];
 
