@@ -207,7 +207,17 @@ export async function getBooks(searchParams: { [key: string]: string | string[] 
   }
 
   try {
-    const validatedParams = booksSearchSchema.parse({ ...searchParams });
+    const validatedParams = booksSearchSchema.parse({
+      title: searchParams.title,
+      author: searchParams.author,
+      genre: searchParams.genre,
+      status: searchParams.status,
+      isbn: searchParams.isbn,
+      year: searchParams.year,
+      pages: searchParams.pages,
+      page: searchParams.page,
+      limit: searchParams.limit,
+    });
     
     const where: BookWhereInput = { userId: session.user.id }; // Filtro base: apenas livros do usuário
     
