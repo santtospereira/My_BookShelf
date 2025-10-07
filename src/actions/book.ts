@@ -27,15 +27,18 @@ const cleanDataForPrisma = (data: z.infer<typeof bookFormSchema>) => {
 export async function addBookAction(formData: any) {
   const session = await getServerSession(authConfig);
   if (!session?.user?.id) {
+    console.log("addBookAction: No user session found.");
     return {
       success: false,
       errors: { _server: ["Não autorizado. Você precisa estar logado para adicionar livros."] },
     };
   }
 
+  console.log("addBookAction: Form Data received:", formData);
   const validationResult = bookFormSchema.safeParse(formData);
 
   if (!validationResult.success) {
+    console.error("addBookAction: Validation failed:", validationResult.error.flatten().fieldErrors);
     return {
       success: false,
       errors: validationResult.error.flatten().fieldErrors,
@@ -43,6 +46,7 @@ export async function addBookAction(formData: any) {
   }
 
   const cleanedData = cleanDataForPrisma(validationResult.data);
+  console.log("addBookAction: Cleaned Data for Prisma:", cleanedData);
 
   try {
     await prisma.book.create({
@@ -53,9 +57,10 @@ export async function addBookAction(formData: any) {
     });
 
     revalidatePath('/books');
+    console.log("addBookAction: Book added successfully.");
     return { success: true };
   } catch (error: any) {
-    console.error("Error adding book:", error);
+    console.error("addBookAction: Error adding book:", error);
     return {
       success: false,
       errors: { _server: ["Não foi possível adicionar o livro. Tente novamente."] },

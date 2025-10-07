@@ -1,123 +1,149 @@
 # BookShelf
 
-## Visão Geral do Projeto
-
-BookShelf é uma aplicação web para gerenciar sua coleção de livros. Permite aos usuários adicionar novos livros, acompanhar o status de leitura, registrar o progresso, atribuir avaliações e organizar sua biblioteca pessoal.
-
-## Funcionalidades
-
--   **Adicionar Livros:** Registre novos livros com detalhes como título, autor, gênero, ano de publicação, número de páginas, ISBN e URL da capa.
--   **Acompanhamento de Leitura:** Defina o status de leitura (Quero Ler, Lendo, Lido, Pausado, Abandonado) e a página atual.
--   **Avaliação:** Atribua uma avaliação de 1 a 5 estrelas aos livros.
--   **Visualização da Biblioteca:** Navegue e visualize todos os livros em sua coleção.
--   **Edição de Livros:** Atualize as informações e o progresso de leitura de livros existentes.
+BookShelf é uma aplicação web moderna para gerenciamento de biblioteca pessoal, permitindo aos usuários catalogar, organizar e acompanhar o progresso de leitura de seus livros.
 
 ## Tecnologias Utilizadas
 
--   **Next.js:** Framework React para aplicações web.
--   **React:** Biblioteca JavaScript para construção de interfaces de usuário.
--   **TypeScript:** Superset tipado de JavaScript.
--   **Prisma:** ORM para Node.js e TypeScript, utilizado para interação com o banco de dados.
--   **Tailwind CSS:** Framework CSS utilitário para estilização rápida.
--   **Zod:** Biblioteca de validação de esquemas TypeScript-first.
--   **React Hook Form:** Biblioteca para gerenciamento de formulários com validação.
+- Next.js 15 com App Router
+- React 19
+- TypeScript
+- Tailwind CSS
+- shadcn/ui
+- Prisma ORM com SQLite
+- NextAuth.js para autenticação
 
-## Primeiros Passos
+## Funcionalidades
 
-Siga estas instruções para configurar e executar o projeto localmente.
+- Dashboard principal com estatísticas da biblioteca.
+- Listagem de livros com busca, filtros e paginação.
+- Adição, edição e exclusão de livros.
+- Visualização detalhada de cada livro.
+- Autenticação de usuários.
 
-### Pré-requisitos
-
-Certifique-se de ter o Node.js (versão 18 ou superior) e o npm (ou yarn/pnpm/bun) instalados em sua máquina.
-
-### Instalação
+## Como Rodar o Projeto
 
 1.  **Clone o repositório:**
+
     ```bash
     git clone https://github.com/seu-usuario/BookShelf.git
     cd BookShelf
     ```
 
 2.  **Instale as dependências:**
+
     ```bash
     npm install
-    # ou
-    yarn install
-    # ou
-    pnpm install
-    # ou
-    bun install
     ```
 
-3.  **Configuração do Banco de Dados (Prisma):**
+3.  **Configuração de Variáveis de Ambiente:**
 
-    Crie um arquivo `.env` na raiz do projeto e adicione sua string de conexão com o banco de dados. Exemplo para SQLite (usado por padrão no desenvolvimento):
+    Crie um arquivo `.env.local` na raiz do projeto (este arquivo não deve ser versionado) e adicione as seguintes variáveis:
 
     ```
+    # Configuração do Banco de Dados
     DATABASE_URL="file:./prisma/dev.db"
+
+    # Configuração do Admin (usado no seeding inicial)
+    ADMIN_EMAIL="admin@example.com" # Opcional: email para o usuário admin
+    ADMIN_PASSWORD="adminpassword" # Opcional: senha para o usuário admin
+
+    # Chave da API do Google Books (para buscar dados de livros por ISBN)
+    GOOGLE_BOOKS_API_KEY="SUA_CHAVE_DA_API_DO_GOOGLE_BOOKS"
+
+    # Configurações do NextAuth.js
+    NEXTAUTH_SECRET="UM_TEXTO_LONGO_E_ALEATORIO_PARA_SEGURANCA"
+    NEXTAUTH_URL="http://localhost:3000"
+
+    # Credenciais do Google para autenticação (se estiver usando login com Google)
+    GOOGLE_CLIENT_ID="SEU_GOOGLE_CLIENT_ID"
+    GOOGLE_CLIENT_SECRET="SEU_GOOGLE_CLIENT_SECRET"
     ```
 
-    Execute as migrações do Prisma para criar o esquema do banco de dados:
+    **Importante:** Substitua os valores entre aspas pelos seus próprios. `NEXTAUTH_SECRET` deve ser uma string longa e aleatória. Para `GOOGLE_BOOKS_API_KEY`, `GOOGLE_CLIENT_ID` e `GOOGLE_CLIENT_SECRET`, você precisará obtê-los nos respectivos serviços.
+
+4.  **Configure o banco de dados:**
+
+    Execute as migrações e o seed do banco de dados:
 
     ```bash
     npx prisma migrate dev --name init
-    ```
-
-    Se desejar popular o banco de dados com dados de exemplo, execute o seed:
-
-    ```bash
     npx prisma db seed
     ```
 
-### Executando a Aplicação
+5.  **Inicie o servidor de desenvolvimento:**
 
-Para iniciar o servidor de desenvolvimento:
+    ```bash
+    npm run dev
+    ```
 
-```bash
-npm run dev
-# ou
-yarn dev
-# ou
-pnpm dev
-# ou
-bun dev
-```
+    A aplicação estará disponível em `http://localhost:3000`.
 
-Abra [http://localhost:3000](http://localhost:3000) em seu navegador para ver a aplicação.
+## Scripts Úteis
 
-## Estrutura do Projeto
+- `npm run dev`: Inicia o servidor de desenvolvimento.
+- `npm run build`: Compila a aplicação para produção.
+- `npm start`: Inicia a aplicação em modo de produção.
+- `npx prisma studio`: Abre o Prisma Studio para visualizar e gerenciar o banco de dados.
+- `npx prisma generate`: Gera o Prisma Client.
+- `npx prisma migrate dev`: Cria e aplica novas migrações de banco de dados.
+- `npx prisma db seed`: Executa o script de seed para popular o banco de dados.
 
--   `src/actions/`: Funções do lado do servidor para manipulação de dados.
--   `src/app/`: Rotas e páginas da aplicação Next.js.
--   `src/components/`: Componentes React reutilizáveis.
--   `src/lib/`: Funções utilitárias e configurações.
--   `prisma/`: Esquema do banco de dados e migrações.
+## Contribuição
 
-## Saiba Mais
-
-Para saber mais sobre Next.js, consulte os seguintes recursos:
-
--   [Documentação do Next.js](https://nextjs.org/docs) - aprenda sobre os recursos e a API do Next.js.
--   [Aprenda Next.js](https://nextjs.org/learn) - um tutorial interativo do Next.js.
-
-Você pode conferir [o repositório Next.js no GitHub](https://github.com/vercel/next.js) - seu feedback e contribuições são bem-vindos!
-
-## Deploy na Vercel
-
-A maneira mais fácil de implantar seu aplicativo Next.js é usar a [Plataforma Vercel](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) dos criadores do Next.js.
-
-Confira nossa [documentação de implantação do Next.js](https://nextjs.org/docs/app/building-your-application/deploying) para mais detalhes.
-
-## Contribuindo
-
-Contribuições são bem-vindas! Por favor, siga estas etapas:
-
-1.  Faça um fork do repositório.
-2.  Crie uma nova branch (`git checkout -b feature/sua-feature`).
-3.  Faça suas alterações e commit (`git commit -m 'feat: Adiciona nova funcionalidade'`).
-4.  Envie para a branch (`git push origin feature/sua-feature`).
-5.  Abra um Pull Request.
+Contribuições são bem-vindas! Sinta-se à vontade para abrir issues e pull requests.
 
 ## Licença
 
-Este projeto está licenciado sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
+Este projeto está licenciado sob a licença MIT.
+
+### Configuração das Variáveis de Ambiente
+
+Para que o aplicativo funcione corretamente, você precisará configurar as seguintes variáveis de ambiente no seu arquivo `.env.local` (ou `.env`):
+
+1.  **`NEXTAUTH_SECRET`**
+    Esta é uma chave de criptografia de uso interno do NextAuth.js para assinar tokens, criptografar cookies e proteger seu aplicativo. É a única que você gera por conta própria.
+
+    **Como gerar (Recomendado):**
+    Você pode gerar uma string forte e aleatória usando o terminal. O NextAuth.js sugere o uso do OpenSSL.
+    Abra seu terminal (Linux, macOS, ou Git Bash/WSL no Windows).
+    Execute o comando:
+
+    ```bash
+
+    openssl rand -base64 32
+    
+    ```
+    O terminal irá exibir uma string longa. Copie essa string e cole-a no seu arquivo `.env` para a variável `NEXTAUTH_SECRET`.
+
+    **Exemplo de resultado (o seu será diferente):**
+    `kM6o/H/m/fUv5Q0yT8A4xW1zB2C9LpOeR7gJbOqYkXlW0GgD4cIuE3tS2rV6`
+
+2.  **`GOOGLE_CLIENT_ID` e `GOOGLE_CLIENT_SECRET`**
+    Essas chaves são usadas para permitir que os usuários façam login no seu aplicativo usando suas contas do Google (OAuth).
+
+    **Como obter:**
+    Acesse o [Google Cloud Console](https://console.cloud.google.com/) (ou a Central de APIs e Serviços do Google).
+    Crie um novo projeto (se ainda não tiver um).
+    Vá para "APIs e Serviços" → "Credenciais".
+    Clique em "Criar credenciais" → "ID do cliente OAuth".
+    Se for a primeira vez, será necessário configurar a Tela de consentimento OAuth (dando nome ao app, etc.).
+    Em "Tipo de aplicativo", selecione "Aplicativo da Web".
+    Você precisará adicionar os URIs de redirecionamento autorizados (Authorized redirect URIs). Para desenvolvimento local, geralmente é:
+    `http://localhost:3000/api/auth/callback/google` (ou a porta que você usa)
+    Após a criação, o Google exibirá o ID do Cliente (`GOOGLE_CLIENT_ID`) e o Segredo do Cliente (`GOOGLE_CLIENT_SECRET`).
+
+3.  **`GITHUB_CLIENT_ID` e `GITHUB_CLIENT_SECRET`**
+    Essas chaves são para permitir que os usuários façam login no seu aplicativo usando suas contas do GitHub (OAuth).
+
+    **Como obter:**
+    Acesse as [Configurações da sua conta do GitHub](https://github.com/settings/profile) (Profile → Settings).
+    Vá para Developer settings → OAuth Apps (ou clique [aqui](https://github.com/settings/developers)).
+    Clique em "New OAuth App".
+    Preencha os campos:
+    *   Application name (Nome do seu app).
+    *   Homepage URL (Geralmente a URL base do seu app, ex: `http://localhost:3000`).
+    *   Authorization callback URL (URI de redirecionamento). Para o NextAuth.js, use:
+        `http://localhost:3000/api/auth/callback/github`
+    Após o registro, você receberá o Client ID (`GITHUB_CLIENT_ID`).
+    Clique em "Generate a new client secret". O GitHub exibirá o Client Secret (`GITHUB_CLIENT_SECRET`). Copie imediatamente, pois você não poderá vê-lo novamente.
+
