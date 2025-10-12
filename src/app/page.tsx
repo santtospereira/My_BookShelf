@@ -9,15 +9,15 @@ import React from "react";
 export default function HomePage(): JSX.Element {
   return (
     <main className="relative flex items-center justify-center h-screen w-screen overflow-hidden
-      bg-gradient-to-br from-[#9b5de5]/90 to-[#7b1fa2]/90">
+      bg-gradient-to-br from-[#c3a5f1]/70 to-[#a972cb]/70">
 
       {/* Fundo translúcido */}
-      <div className="absolute inset-0 bg-gradient-to-br from-purple-950 via-purple-900 to-purple-800 opacity-60" />
+      <div className="absolute inset-0 bg-gradient-to-br from-purple-950 via-purple-900 to-purple-800 opacity-20" />
 
       {/* Container principal com púrpura mais escuro */}
       <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between
         w-[79%] h-[79%] rounded-3xl p-8 lg:p-12
-        bg-gradient-to-br from-[#4b0082] via-[#5a2d8c] to-[#6a0dad]
+        bg-gradient-to-br from-[#5c2a8a] via-[#6e4a9b] to-[#8065ac]
         shadow-[0_8px_40px_rgba(0,0,0,0.35)] backdrop-blur-xl">
 
         {/* Texto à esquerda */}

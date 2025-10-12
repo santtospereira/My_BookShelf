@@ -6,14 +6,11 @@ export default withAuth(
     const { pathname } = req.nextUrl;
     const isAuthenticated = !!req.nextauth.token;
 
-    // If authenticated and trying to access the root, redirect to dashboard
     if (isAuthenticated && pathname === "/") {
       return NextResponse.redirect(new URL("/dashboard", req.url));
     }
 
-    // For all other routes (which are considered protected by default),
-    // if not authenticated, withAuth will handle the redirect to signin.
-    // If authenticated, allow access.
+    
     return NextResponse.next();
   },
   {
@@ -21,12 +18,10 @@ export default withAuth(
       authorized: ({ token, req }) => {
         const { pathname } = req.nextUrl;
 
-        // Allow unauthenticated access to public routes
         if (pathname === "/" || pathname.startsWith("/auth")) {
-          return true; // Allow access
+          return true; 
         }
 
-        // For all other routes, require authentication
         return !!token;
       },
     },
@@ -37,5 +32,5 @@ export default withAuth(
 );
 
 export const config = {
-  matcher: ["/", "/dashboard/:path*", "/auth/:path*"], // Match all routes that need middleware logic
+  matcher: ["/", "/dashboard/:path*", "/auth/:path*"], 
 };

@@ -1,6 +1,7 @@
 'use client';
 
 import Link from "next/link";
+import { usePathname } from 'next/navigation'; // Import usePathname
 import { Book, Library } from "lucide-react"; // Re-adding original imports
 import { ThemeSwitcher } from "./theme-switcher";
 import ClientOnly from "./client-only"; // Re-adding original imports
@@ -8,8 +9,13 @@ import { useSession, signIn, signOut } from 'next-auth/react';
 import { Button } from "./ui/button"; // Assuming this path is correct
 
 export default function Header() {
+  const pathname = usePathname();
   const { data: session, status } = useSession();
   const loading = status === 'loading';
+
+  if (pathname === '/') {
+    return null;
+  }
 
   return (
     <header className="bg-background border-b sticky top-0 z-50">
